@@ -1,0 +1,23 @@
+pals_analysis/
+├── __init__.py
+├── config.py                 # Material constants and parameters
+├── physics/
+│   ├── __init__.py
+│   ├── implantation.py      # Makhov profiles and depth calculations
+│   ├── diffusion.py          # Positron diffusion modeling
+│   └── annihilation.py       # Annihilation profile calculations
+├── analysis/
+│   ├── __init__.py
+│   ├── fitting.py            # S-parameter fitting routines
+│   └── thickness_solver.py   # Oxide thickness determination
+├── visualization/
+│   ├── __init__.py
+│   └── plots.py              # Standardized plotting functions
+└── utils/
+    ├── __init__.py
+    └── helpers.py            # Utility functions
+
+notebooks/
+├── 01_simulation.ipynb       # Physics simulations
+├── 02_data_analysis.ipynb    # Experimental data fitting
+└── 03_results.ipynb          # Final results and figures
