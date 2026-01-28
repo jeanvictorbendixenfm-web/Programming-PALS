@@ -201,3 +201,64 @@ def plot_parameter_sensitivity(param_values, results, param_name,
         print(f"Saved: {save_as}")
     
     return fig, ax
+
+
+from pals_analysis.analysis.thickness_solver import numerical_S_curve
+
+def plot_fit_result(energies, s_exp, s_err, d_fit, w_fit, s_surf_fit):
+    """
+    Plots the experimental data and the fitted graded model curve.
+    """
+    print("Generating fit plot...")
+    
+    # 1. Generate a smooth curve for the model (using more points for a nice line)
+    # We span the same energy range as your data
+    E_smooth = np.linspace(min(energies), max(energies), 100)
+    
+    # Run the simulation using the FITTED parameters
+    # Note: We fix s_bulk=0.520 as we did in the solver
+    s_fit_curve = numerical_S_curve(
+        E_smooth, 
+        d_ox=d_fit, 
+        w=w_fit, 
+        s_surf=s_surf_fit, 
+        s_bulk=0.520, 
+        model='graded'
+    )
+    
+    # 2. Plotting
+    plt.figure(figsize=(8, 6))
+    
+    # A. The Experimental Data (Dots)
+    plt.errorbar(energies, s_exp, yerr=s_err, fmt='o', color='black', 
+                 label='Experimental Data', capsize=3, markersize=5, alpha=0.7)
+    
+    # B. The Fitted Model (Red Line)
+    plt.plot(E_smooth, s_fit_curve, 'r-', linewidth=2.5, 
+             label=f'Graded Fit (d={d_fit:.1f}nm, w={w_fit:.1f}nm)')
+    
+    # Formatting
+    plt.xlabel('Positron Energy (keV)', fontsize=12)
+    plt.ylabel('S-Parameter', fontsize=12)
+    plt.title('PALS Data Fit', fontsize=14, fontweight='bold')
+    plt.legend(fontsize=11)
+    plt.grid(True, alpha=0.3)
+    
+    # Optional: Residuals plot (Difference between model and data)
+    # To do this, we need model points exactly at the experimental energies
+    s_model_at_points = numerical_S_curve(energies, d_fit, w_fit, s_surf_fit, 0.520, 'graded')
+    residuals = s_exp - s_model_at_points
+    
+    # Inset for residuals? Or just print chi-squared?
+    chi2 = np.sum((residuals**2) / (s_err**2 if s_err is not None else 1))
+    print(f"Fit Quality (Chi-Squared): {chi2:.4f}")
+
+    plt.savefig("final_fit_result.pdf", dpi=300)
+    plt.show()
+
+# --- HOW TO RUN IT ---
+# Assuming you already have 'd_fit', 'w_fit', 's_fit' from the previous step:
+
+
+# If you DO NOT have error bars, just pass None:
+# plot_fit_result(energies, s_exp, None, d_fit, w_fit, s_fit)
