@@ -3,23 +3,14 @@
 import numpy as np
 
 
-def makhov_profile(z_grid, energy_kev, layers):
+"""Implantation functions - Updated for Graded Interface."""
+
+import numpy as np
+
+def makhov_profile(z_grid, energy_kev, layers, model='sharp', w=10.0):
     """
-    YOUR implementation from pals.ipynb Cell 4.
-    
-    Parameters
-    ----------
-    z_grid : array
-        Depth points (nm)
-    energy_kev : float
-        Beam energy (keV)
-    layers : list of dict
-        Each with 'thickness' and 'density'
-    
-    Returns
-    -------
-    array
-        Normalized implantation profile P(z)
+    Calculates Implantation Profile P(z).
+    Supports 'sharp' (step function) and 'graded' (sigmoid) interfaces.
     """
     n, m, A = 1.6, 2.0, 4.0
     
@@ -27,20 +18,45 @@ def makhov_profile(z_grid, energy_kev, layers):
     densities = np.zeros_like(z_grid)
     mass_depth = np.zeros_like(z_grid)
     
-    curr_z = 0
-    acc_mass = 0
+    # 1. Build Density Map
+    if model == 'graded' and len(layers) >= 2:
+        # Graded: Sigmoid transition between Layer 0 and Layer 1
+        d_ox = layers[0]['thickness']
+        rho_ox = layers[0]['density']
+        rho_sub = layers[1]['density']
+        
+        # Sigmoid function centered at d_ox with width w
+        # The factor 4 ensures 'w' represents roughly the 10%-90% transition width
+        densities = rho_ox + (rho_sub - rho_ox) / (1 + np.exp(-(z_grid - d_ox) / (w/4.0)))
+    else:
+        # Sharp: Step function (Default)
+        curr_z = 0
+        for l in layers:
+            mask = (z_grid >= curr_z) & (z_grid <= curr_z + l['thickness'])
+            densities[mask] = l['density']
+            curr_z += l['thickness']
+
+    # 2. Calculate Mass Depth (Cumulative Density)
+    # We integrate density * dz to get depth in g/cm^2
+    dz = z_grid[1] - z_grid[0]
+    # np.cumsum is faster and accurate enough for dense grids
+    # 0.1 conversion factor if density is g/cm3 and z is nm -> microgram/cm2
+    mass_depth = np.cumsum(densities * dz) * 0.1 
     
-    for l in layers:
-        mask = (z_grid >= curr_z) & (z_grid <= curr_z + l['thickness'])
-        densities[mask] = l['density']
-        mass_depth[mask] = acc_mass + (z_grid[mask] - curr_z) * l['density'] * 0.1
-        acc_mass += l['thickness'] * l['density'] * 0.1
-        curr_z += l['thickness']
+    # 3. Calculate Makhov Profile
+    # Ensure energy is not zero to avoid division errors
+    eff_E = np.maximum(energy_kev, 0.01)
+    xi_0 = (A * eff_E**n) / 0.886
     
-    xi_0 = (A * max(energy_kev, 0.01)**n) / 0.886
-    p_z = ((m * mass_depth**(m-1) / xi_0**m) * np.exp(-(mass_depth/xi_0)**m)) * densities
+    # The Makhov formula P(z) = dP/dz
+    p_xi = (m * mass_depth**(m-1) / xi_0**m) * np.exp(-(mass_depth/xi_0)**m)
     
-    return p_z / np.trapezoid(p_z, z_grid)
+    # Convert P(mass) to P(z) by multiplying by density (Jacobian)
+    p_z = p_xi * densities
+    
+    # Normalize
+    integral = np.trapezoid(p_z, z_grid)
+    return p_z / integral if integral > 0 else p_z
 
 
 def energy_to_mean_depth(energies, d_ox, rho_ox, rho_sub):
