@@ -138,7 +138,7 @@ def create_heatmap(energies, depths, s_values, title='S-Parameter Heatmap',
     fig, ax = plt.subplots(figsize=(12, 8))
     
     # Create custom colormap (blue -> white -> red)
-    colors = ['blue', 'white', 'red']
+    colors = ['darkblue','blue', 'white', 'red', 'purple']
     n_bins = 100
     cmap = LinearSegmentedColormap.from_list('custom', colors, N=n_bins)
     
