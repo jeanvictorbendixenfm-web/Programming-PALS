@@ -15,7 +15,7 @@ MAKHOV_M = 2.0
 S_BULK_STEEL = 0.52
 
 # Diffusion lengths (nm)
-L_DIFF_OXIDE = 30
+L_DIFF_OXIDE = 100
 L_DIFF_STEEL = 150
 
 # Your experimental data from pals-solver.ipynb Cell 2
