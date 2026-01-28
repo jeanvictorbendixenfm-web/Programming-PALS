@@ -115,8 +115,8 @@ def plot_depth_profiles(z, p_z, c_z, d_ox, energy, save_as=None):
     return fig, ax
 
 
-def create_heatmap(energies, depths, s_values, title='S-Parameter Heatmap', colorbarname="User input?", 
-                   d_ox=None, save_as=None):
+def create_heatmap(energies, depths, s_values, title='S-Parameter Heatmap', 
+                   d_ox=None, save_as=None, cbar_label='S-Parameter'):
     """
     Create 2D heatmap of S-parameter vs energy and depth.
     
@@ -153,7 +153,7 @@ def create_heatmap(energies, depths, s_values, title='S-Parameter Heatmap', colo
     
     # Colorbar
     cbar = plt.colorbar(im, ax=ax)
-    cbar.set_label(colorbarname, fontsize=12, fontweight='bold')
+    cbar.set_label(cbar_label, fontsize=12, fontweight='bold')
     
     ax.set_xlabel('Energy (keV)', fontsize=12, fontweight='bold')
     ax.set_ylabel('Depth (nm)', fontsize=12, fontweight='bold')
