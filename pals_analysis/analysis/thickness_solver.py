@@ -108,7 +108,7 @@ def solve_graded_model(energies, s_exp, s_err=None):
     # Bounds: d(10-1000), w(1-100), S(0-1)
     bounds = ([10, 1, 0.4], [1000, 200, 0.7])
     
-    popt, pcov = curve_fit(fit_func, energies, s_exp, p0=p0, bounds=bounds, sigma=s_err)
+    popt, pcov = curve_fit(fit_func, energies, s_exp, p0=p0, bounds=bounds, sigma=s_err, maxfev=10000)
     
     d_fit, w_fit, s_surf_fit = popt
     return d_fit, w_fit, s_surf_fit
