@@ -2,86 +2,101 @@
 
 import numpy as np
 from scipy.optimize import curve_fit
+from pals_analysis.physics.implantation import makhov_profile
+from pals_analysis.physics.annihilation import calculate_annihilation_profile
 
 
-def theoretical_S_curve(E, d_ox, S_surf):
-    """YOUR implementation from pals-solver.ipynb Cell 1."""
+def theoretical_S_curve(E, d_ox, S_surf, RHO_OX=5.24, S_BULK_STEEL=0.52):
+    """
+    Calculate theoretical S-parameter curve for a given energy, oxide
+    thickness and surface S-parameter.
+
+    input:
+    - E : float or array
+    - d_ox : float
+    - S_surf : float
+
+    """
     RHO_OX = 5.24
-    A, N = 4.0, 1.6
+    A, N = 40, 1.6, # microgram cm^-2 keV^-N
     S_BULK_STEEL = 0.52
     
-    E = np.atleast_1d(E)
-    mass_capacity = A * (E**N)
-    oxide_mass_limit = RHO_OX * d_ox * 0.1
-    xi_0 = (A * E**N) / 0.886
-    fraction_oxide = 1 - np.exp(-(oxide_mass_limit / xi_0)**2)
+    # Ensure E is array for consistent calculations
+    E = np.atleast_1d(E), # keV
     
+    # Oxide mass limit (g/cm2)
+    # Conversion rate to ensure fraction.
+    d_ox_micro =  d_ox * 0.1
+    
+    # 
+    z_0 = (A * E**N) / (RHO_OX * 0.886) # Units in markdown above.
+
+    # The fraction of positrons present in the oxide layer.
+    fraction_oxide = 1 - np.exp(-(d_ox_micro / z_0)**2)
+    
+    # Predicted S-parameter. It simply linerarly combines the contributions from
+    # each S-parameter in the layers. 
     s_pred = (fraction_oxide * S_surf) + ((1 - fraction_oxide) * S_BULK_STEEL)
     return s_pred if len(s_pred) > 1 else float(s_pred[0])
 
 
 def solve_for_thickness(energies, s_exp):
-    """YOUR implementation from pals-solver.ipynb Cell 1."""
+    """
+    This function finds the d_ox and S_surf that fits the given experimental data
+    with a S-curve.
+
+    input:
+    - energies : array, NumPy, length energies = s_exp
+    - s_exp : array, NumPy
+    
+    """
+
+    # It fets a theoretical S-curve to it and estimates the thickness of the oxides
+    # and the S-parameter at the surface.
     popt, pcov = curve_fit(theoretical_S_curve, energies, s_exp, p0=[20, 0.54])
     return popt[0], popt[1]  # d_ox, S_surf
 
-
-def fit_model(E, d_ox, S_ox):
-    """YOUR implementation from pals-solver.ipynb Cell 2."""
-    RHO_OX = 5.24
-    A, N = 4.0, 1.6
-    S_BULK_STEEL = 0.52
-    
-    E = np.atleast_1d(E)
-    mass_capacity = A * (E**N)
-    oxide_mass_limit = RHO_OX * d_ox * 0.1
-    xi_0 = mass_capacity / 0.886
-    f_ox = 1 - np.exp(-(oxide_mass_limit / xi_0)**2)
-    
-    s_pred = f_ox * S_ox + (1 - f_ox) * S_BULK_STEEL
-    return s_pred if len(s_pred) > 1 else float(s_pred[0])
-
-
-"""Thickness fitting - Updated to use Numerical Physics Engine."""
-
-# Import the physics engines
-from pals_analysis.physics.implantation import makhov_profile
-from pals_analysis.physics.annihilation import calculate_annihilation_profile
 
 def numerical_S_curve(energies, d_ox, w, s_surf, s_bulk, model='graded'):
     """
     Generates S(E) curve using the full numerical simulation.
     This captures the 'bump' caused by interface trapping.
     """
-    # 1. Define Geometry / Constants
-    # You might want to move these to config or pass them as args
+    # Defining Geometry / Constants
     layers = [
         {'thickness': d_ox, 'density': 5.24, 'L_diff': 30},   # Oxide
         {'thickness': 2000, 'density': 8.00, 'L_diff': 150}   # Steel (Substrate)
     ]
     
     z_max = 2000 # nm
-    z_grid = np.linspace(0, z_max, 500) # 500 points is usually enough for fitting
+    z_grid = np.linspace(0, z_max, 1000) # Max is changeable.
     
-    # 2. Build S-Parameter Map (S(z))
-    # If density/diffusion is graded, S-parameter should likely grade too
+    # S-Parameter Map, S(z)
     s_map = np.zeros_like(z_grid)
+
+
     if model == 'graded':
         s_map = s_surf + (s_bulk - s_surf) / (1 + np.exp(-(z_grid - d_ox) / (w/4.0)))
-    else:
+    if model == 'layered':
+        # Here we attribute S-parameters solemnly based on layer.
         s_map = np.where(z_grid <= d_ox, s_surf, s_bulk)
+    else:
+        # Added this cause honestly so many things can go wrong.
+        raise ValueError(f"Unknown model type: {model}")
 
-    # 3. Run Simulation for each Energy
+    # 3. Run Simulation for each energy
     s_values = []
     
     # Ensure energies is iterable
     energies = np.atleast_1d(energies)
     
     for E in energies:
-        # A. Implantation
+        # We define the profile for each energy in the grid, taken
+        # into account the model and layers.
         p_z = makhov_profile(z_grid, E, layers, model=model, w=w)
         
-        # B. Diffusion
+        # Diffusion is applied to get the annihilation profile using the 
+        # distribution of positron in each cell. 
         c_z = calculate_annihilation_profile(z_grid, p_z, layers, model=model, w=w)
         
         # C. Calculate S = Integral( C(z) * S(z) )
@@ -103,7 +118,7 @@ def solve_graded_model(energies, s_exp, s_err=None):
         return numerical_S_curve(E, d_ox=d, w=w, s_surf=s_s, s_bulk=0.520, model='graded')
 
     # Initial Guesses: d=150nm, width=20nm, S_surf=0.575
-    p0 = [150.0, 20.0, 0.575]
+    p0 = [100.0, 15.0, 0.575]
     
     # Bounds: d(10-1000), w(1-100), S(0-1)
     bounds = ([10, 1, 0.4], [1000, 200, 0.7])
@@ -112,3 +127,4 @@ def solve_graded_model(energies, s_exp, s_err=None):
     
     d_fit, w_fit, s_surf_fit = popt
     return d_fit, w_fit, s_surf_fit
+
