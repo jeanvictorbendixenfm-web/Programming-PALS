@@ -84,7 +84,7 @@ def numerical_S_curve(energies, d_ox, w, s_surf, s_bulk, model='graded'):
         # Added this cause honestly so many things can go wrong.
         raise ValueError(f"Unknown model type: {model}")
 
-    # 3. Run Simulation for each energy
+    # Generate an empty s_value array for simulation.
     s_values = []
     
     # Ensure energies is iterable
@@ -99,7 +99,9 @@ def numerical_S_curve(energies, d_ox, w, s_surf, s_bulk, model='graded'):
         # distribution of positron in each cell. 
         c_z = calculate_annihilation_profile(z_grid, p_z, layers, model=model, w=w)
         
-        # C. Calculate S = Integral( C(z) * S(z) )
+        # S = Integral( C(z) * S(z) )
+        # This reassigns the S-parameter to each cell now that positrons have 
+        # implanted and diffused.
         s_point = np.trapezoid(c_z * s_map, z_grid)
         s_values.append(s_point)
         
@@ -110,17 +112,18 @@ def solve_graded_model(energies, s_exp, s_err=None):
     Fits the experimental data using the Graded Interface Model.
     Fits: Thickness (d_ox), Interface Width (w), and Surface S (s_surf).
     """
-    print("Running Numerical Graded Solver... (This may take a few seconds)")
+    print("Fitting...")
     
-    # Wrapper for curve_fit to freeze parameters we don't want to fit (like S_bulk)
+    # This just wraps the numerical S-curve to be used in curve_fit
     def fit_func(E, d, w, s_s):
         # We fix S_bulk to 0.520 (Steel) for stability, or fit it if you prefer
         return numerical_S_curve(E, d_ox=d, w=w, s_surf=s_s, s_bulk=0.520, model='graded')
 
-    # Initial Guesses: d=150nm, width=20nm, S_surf=0.575
+    # Initial values: d=150nm, width=20nm, S_surf=0.575
     p0 = [100.0, 15.0, 0.575]
     
     # Bounds: d(10-1000), w(1-100), S(0-1)
+    # These prevent divergence or unphysical fits.
     bounds = ([10, 1, 0.4], [1000, 200, 0.7])
     
     popt, pcov = curve_fit(fit_func, energies, s_exp, p0=p0, bounds=bounds, sigma=s_err, maxfev=10000)
