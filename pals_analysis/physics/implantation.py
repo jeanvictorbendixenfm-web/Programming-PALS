@@ -17,7 +17,6 @@ def makhov_profile(z_grid, energy_kev, layers, model='sharp', w=10.0):
     # Generates appropriate arrays.
     z_grid = np.asarray(z_grid)
     densities = np.zeros_like(z_grid)
-    mass_depth = np.zeros_like(z_grid)
     
     # 1. Build Density Map
     if model == 'graded' and len(layers) >= 2:
@@ -56,7 +55,7 @@ def makhov_profile(z_grid, energy_kev, layers, model='sharp', w=10.0):
     eff_E = np.maximum(energy_kev, 0.01)
 
     # We convert z_0 to xi_0 which is similar to a mass distribution,
-    xi_0 = (A * eff_E**n) / 0.886
+    xi_0 = (A * eff_E**N) / 0.886
     
     # The Makhov formula P(z) = dP/dz
     p_xi = (m * xi**(m-1) / xi_0**m) * np.exp(-(xi/xi_0)**m)

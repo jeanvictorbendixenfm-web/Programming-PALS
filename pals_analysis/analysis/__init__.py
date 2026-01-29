@@ -1,7 +1,7 @@
 """Analysis module."""
 
 from .thickness_solver import (
-    theoretical_S_curve, solve_for_thickness, fit_model
+    theoretical_S_curve, solve_for_thickness, numerical_S_curve, solve_graded_model
 
 )
 from .sensitivity import (

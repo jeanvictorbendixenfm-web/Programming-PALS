@@ -8,13 +8,16 @@ def calculate_annihilation_profile(z_grid, p_z, layers, model='sharp', w=10.0):
     """
     Calculates Diffusion-Annilation Profile C(z).
     Supports 'sharp' and 'graded' diffusion length transitions.
+    NEEDS ADJUSTMENT FOR MULTIPLE LAYERS.
     """
     z_grid = np.asarray(z_grid)
     p_z = np.asarray(p_z)
     dz = z_grid[1] - z_grid[0]
     n_pts = len(z_grid)
     
-    # 1. Build Diffusion Length (L) Map
+    # Diffusion Length (L) Map
+    # Follows a similar approach as in implantation regarding the distrubution of L_diff.
+    # on the z-grid
     L_grid = np.zeros_like(z_grid)
     
     if model == 'graded' and len(layers) >= 2:
