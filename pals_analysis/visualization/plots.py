@@ -115,7 +115,7 @@ def plot_depth_profiles(z, p_z, c_z, d_ox, energy, save_as=None):
     return fig, ax
 
 
-def create_heatmap(energies, depths, s_values, title='S-Parameter Heatmap', 
+def create_heatmap(energies, depths, s_values, exterior_cbar=0, title='S-Parameter Heatmap', 
                    d_ox=None, save_as=None, cbar_label='S-Parameter'):
     """
     Create 2D heatmap of S-parameter vs energy and depth.
@@ -138,13 +138,16 @@ def create_heatmap(energies, depths, s_values, title='S-Parameter Heatmap',
     fig, ax = plt.subplots(figsize=(12, 8))
     
     # Create custom colormap (blue -> white -> red)
-    colors = ["green", "white"]
+    colors = ["white", "purple"]
     n_bins = 100
     cmap = LinearSegmentedColormap.from_list('custom', colors, N=n_bins)
     
     # Plot heatmap
     im = ax.contourf(energies, depths, s_values.T, levels=50, cmap=cmap)
     
+    if exterior_cbar != np.zeros_like(len(exterior_cbar)):
+        im = ax.contourf(energies, depths, exterior_cbar.T, levels=50, cmap=cmap )
+
     # Add interface line if provided
     if d_ox is not None:
         ax.axhline(d_ox, color='black', linestyle='--', linewidth=2, 
