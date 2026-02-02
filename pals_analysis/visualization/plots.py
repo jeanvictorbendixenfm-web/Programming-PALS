@@ -115,7 +115,7 @@ def plot_depth_profiles(z, p_z, c_z, d_ox, energy, save_as=None):
     return fig, ax
 
 
-def create_heatmap(energies, depths, s_values, exterior_cbar=0, title='S-Parameter Heatmap', 
+def create_heatmap(energies, depths, s_values, exterior_cbar=np.array([]), title='S-Parameter Heatmap', 
                    d_ox=None, save_as=None, cbar_label='S-Parameter'):
     """
     Create 2D heatmap of S-parameter vs energy and depth.
@@ -145,7 +145,7 @@ def create_heatmap(energies, depths, s_values, exterior_cbar=0, title='S-Paramet
     # Plot heatmap
     im = ax.contourf(energies, depths, s_values.T, levels=50, cmap=cmap)
     
-    if exterior_cbar != np.zeros_like(len(exterior_cbar)):
+    if np.array.size(exterior_cbar) > 0:
         im = ax.contourf(energies, depths, exterior_cbar.T, levels=50, cmap=cmap )
 
     # Add interface line if provided
