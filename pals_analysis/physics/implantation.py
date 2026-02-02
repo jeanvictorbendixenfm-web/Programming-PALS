@@ -5,7 +5,7 @@ import numpy as np
 
 import numpy as np
 
-def makhov_profile(z_grid, energy_kev, layers, model='sharp', w=10.0):
+def makhov_profile(z_grid, energy_kev, layers, model='layered', w=10.0):
     """
     Calculates Implantation Profile P(z).
     This is based on the Makhov profile and adapted here to multiple layers.
@@ -19,7 +19,7 @@ def makhov_profile(z_grid, energy_kev, layers, model='sharp', w=10.0):
     densities = np.zeros_like(z_grid)
     
     # 1. Build Density Map
-    if model == 'graded' and len(layers) >= 2:
+    if model == 'graded' and len(layers) == 2:
         # Graded: Sigmoid transition between Layer 0 and Layer 1
         # NEEDS ADJUSTMENT FOR MORE LAYERS!
         d_ox = layers[0]['thickness']
@@ -72,6 +72,7 @@ def makhov_profile(z_grid, energy_kev, layers, model='sharp', w=10.0):
     
     # Returns Makhov profile
     return p_z / integral if integral > 0 else p_z
+
 
 
 def energy_to_mean_depth(energies, d_ox, rho_ox, rho_sub):

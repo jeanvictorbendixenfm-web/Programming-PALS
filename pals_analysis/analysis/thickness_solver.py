@@ -57,32 +57,46 @@ def solve_for_thickness(energies, s_exp):
     return popt[0], popt[1]  # d_ox, S_surf
 
 
-def numerical_S_curve(energies, d_ox, w, s_surf, s_bulk, model='graded'):
+def numerical_S_curve(layers, energies, w, model='graded', z_max=1150, z_pts=2000):
     """
     Generates S(E) curve using the full numerical simulation.
     This captures the 'bump' caused by interface trapping.
     """
     # Defining Geometry / Constants
-    layers = [
-        {'thickness': d_ox, 'density': 5.24, 'L_diff': 30},   # Oxide
-        {'thickness': 2000, 'density': 8.00, 'L_diff': 150}   # Steel (Substrate)
-    ]
-    
-    z_max = 2000 # nm
-    z_grid = np.linspace(0, z_max, 1000) # Max is changeable.
+    #layers = [
+    #    {'thickness': d_ox, 'density': 5.24, 'L_diff': 30},   # Oxide
+    #    {'thickness': 2000, 'density': 8.00, 'L_diff': 150}   # Steel (Substrate)
+    #]
+
+    z_grid = np.linspace(0, z_max, z_pts) # Max is changeable.
     
     # S-Parameter Map, S(z)
     s_map = np.zeros_like(z_grid)
 
-
+    if len(layers) == 1 or len(layers) > 2:
+        model = "layered" # Force layered if only one layer or more than two.
+    
+    if len(layers) == 0:
+        raise ValueError("No layers defined for S-curve simulation.")
+    
     if model == 'graded':
+        # This needs adaption for multilayer graded interfaces.
+        d_ox = layers[0]['thickness']
+        s_surf = layers[0]['S_param']
+        s_bulk = layers[1]['S_param']
         s_map = s_surf + (s_bulk - s_surf) / (1 + np.exp(-(z_grid - d_ox) / (w/4.0)))
+    
     if model == 'layered':
         # Here we attribute S-parameters solemnly based on layer.
-        s_map = np.where(z_grid <= d_ox, s_surf, s_bulk)
+        curr_z = 0
+        for l in layers:
+            mask = (z_grid >= curr_z) & (z_grid <= curr_z + l['thickness'])
+            s_map[mask] = l['S_param']
+            curr_z += l['thickness']
     else:
         # Added this cause honestly so many things can go wrong.
         raise ValueError(f"Unknown model type: {model}")
+
 
     # Generate an empty s_value array for simulation.
     s_values = []
@@ -90,6 +104,7 @@ def numerical_S_curve(energies, d_ox, w, s_surf, s_bulk, model='graded'):
     # Ensure energies is iterable
     energies = np.atleast_1d(energies)
     
+    print("Calculating S-curve based on layers and energies...")
     for E in energies:
         # We define the profile for each energy in the grid, taken
         # into account the model and layers.
@@ -105,7 +120,7 @@ def numerical_S_curve(energies, d_ox, w, s_surf, s_bulk, model='graded'):
         s_point = np.trapezoid(c_z * s_map, z_grid)
         s_values.append(s_point)
         
-    return np.array(s_values)
+    return np.array(s_values), s_map
 
 def solve_graded_model(energies, s_exp, s_err=None):
     """

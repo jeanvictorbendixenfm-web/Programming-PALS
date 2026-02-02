@@ -4,7 +4,7 @@ import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
 
-def calculate_annihilation_profile(z_grid, p_z, layers, model='sharp', w=10.0):
+def calculate_annihilation_profile(z_grid, p_z, layers, model='layered', w=10.0):
     """
     Calculates Diffusion-Annilation Profile C(z).
     Supports 'sharp' and 'graded' diffusion length transitions.
@@ -28,7 +28,7 @@ def calculate_annihilation_profile(z_grid, p_z, layers, model='sharp', w=10.0):
         
         L_grid = L_ox + (L_sub - L_ox) / (1 + np.exp(-(z_grid - d_ox) / (w/4.0)))
     else:
-        # Sharp: Step function
+        # Layered: Step function
         curr_z = 0
         for l in layers:
             mask = (z_grid >= curr_z) & (z_grid <= curr_z + l['thickness'])
@@ -37,13 +37,16 @@ def calculate_annihilation_profile(z_grid, p_z, layers, model='sharp', w=10.0):
     
     # 2. Build Sparse Matrix for Diffusion Equation
     # Equation: L^2 * d2C/dz2 - C = -P
+    # C(z) is the steady state concentration profile of positrons.
+    # P(z) is the positron implantation profile.
+    # Double derivative is the curvature of concentration.
     
     # Coefficients
     # Central difference: d2C/dz2 ~ (C_{i+1} - 2C_i + C_{i-1}) / dz^2
-    factor = L_grid**2 / dz**2
+    alpha = L_grid**2 / dz**2
     
-    main_diag = -2 * factor - 1
-    off_diag = factor # simplified; assumes L is constant locally or changes slowly
+    beta = -1 -2 * alpha
+    off_diag = alpha # simplified; assumes L is constant locally or changes slowly
     
     # Fix off-diagonals to match matrix size (N-1)
     lower = off_diag[1:] 
@@ -53,12 +56,14 @@ def calculate_annihilation_profile(z_grid, p_z, layers, model='sharp', w=10.0):
     # We approximate by adjusting the first matrix row or just ignoring for bulk
     # Here we use standard Dirichlet/Natural setup, ensuring stability
     
-    matrix = diags([lower, main_diag, upper], [-1, 0, 1], shape=(n_pts, n_pts)).tocsr()
+    matrix = diags([lower, beta, upper], [-1, 0, 1], shape=(n_pts, n_pts)).tocsr()
     
     # 3. Solve
     c_z = spsolve(matrix, -p_z)
-    c_z = np.maximum(c_z, 0) # Remove numerical noise < 0
+    c_z_filtered = np.maximum(c_z, 0) # Remove numerical noise < 0
     
     # Normalize
-    integral = np.trapezoid(c_z, z_grid)
-    return c_z / integral if integral > 0 else c_z
+    integral = np.trapezoid(c_z_filtered, z_grid)
+    if integral <= 0:
+        print("Warning: Non-positive integral in annihilation profile normalization.")
+    return c_z_filtered / integral if integral > 0 else c_z_filtered

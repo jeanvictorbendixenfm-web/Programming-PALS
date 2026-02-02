@@ -155,8 +155,8 @@ def create_heatmap(energies, depths, s_values, title='S-Parameter Heatmap',
     cbar = plt.colorbar(im, ax=ax)
     cbar.set_label(cbar_label, fontsize=12, fontweight='bold')
     
-    ax.set_xlabel('Energy (keV)', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Depth (nm)', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Energy (keV)', fontsize=12)
+    ax.set_ylabel('Depth (nm)', fontsize=12)
     ax.set_title(title, fontsize=14, fontweight='bold')
     
     plt.tight_layout()
