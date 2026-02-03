@@ -115,7 +115,7 @@ def plot_depth_profiles(z, p_z, c_z, d_ox, energy, save_as=None):
     return fig, ax
 
 
-def create_heatmap(energies, depths, s_values, exterior_cbar=np.array([]), title='S-Parameter Heatmap', 
+def create_heatmap(energies, depths, s_values, v_range=None, title='S-Parameter Heatmap', 
                    d_ox=None, save_as=None, cbar_label='S-Parameter'):
     """
     Create 2D heatmap of S-parameter vs energy and depth.
@@ -143,11 +143,22 @@ def create_heatmap(energies, depths, s_values, exterior_cbar=np.array([]), title
     cmap = LinearSegmentedColormap.from_list('custom', colors, N=n_bins)
     
     # Plot heatmap
-    im = ax.contourf(energies, depths, s_values.T, levels=50, cmap=cmap)
     
-    if np.array.size(exterior_cbar) > 0:
-        im = ax.contourf(energies, depths, exterior_cbar.T, levels=50, cmap=cmap )
 
+    if v_range is not None:
+        # This will only work if v_range is something like (0.4, 0.6)
+        v_min, v_max = v_range
+    else:
+        # Default to the limits of the data we are currently plotting
+        v_min, v_max = s_values.min(), s_values.max()
+
+    # 2. Define levels based on those limits
+    plot_levels = np.linspace(v_min, v_max, 50)
+
+    # 3. Plot
+    im = ax.contourf(energies, depths, s_values.T, levels=plot_levels, 
+                     cmap=cmap, extend='both')
+    
     # Add interface line if provided
     if d_ox is not None:
         ax.axhline(d_ox, color='black', linestyle='--', linewidth=2, 
