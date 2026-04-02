@@ -6,11 +6,23 @@ import matplotlib as mpl
 Path = r"C:\Users\jeanv\OneDrive - Delft University of Technology\Uitwisseling - TUDelft\Courses\MEP\Experiments\nic\temperature_measurements"
 
 # Loading data from the text files
+global dataRun2
 dataRun2 = np.loadtxt(Path + r"\Round2_copy.txt", delimiter="\t")
+global dataRun1
 dataRun1 = np.loadtxt(Path + r"\Round1_copy.txt", delimiter="\t")
+global dataRun1_75015mm
 dataRun1_75015mm = np.loadtxt(Path + r"\15mm750C_run1_copy.txt", delimiter="\t")
+global dataRun3_part1
 dataRun3_part1 = np.loadtxt(Path + r"\Round3_part1.txt", delimiter="\t")
+global dataRun3_part2
 dataRun3_part2 = np.loadtxt(Path + r"\Round3_part2.txt", delimiter="\t")
+
+global timerun2, CH0run2, CH1run2, CH2run2, CH3run2
+global timerun1, CH0run1, CH1run1, CH2run1, CH3run1
+global timerun1_75015mm, CH0run1_75015mm, CH1run1_75015mm, CH2run1_75015mm, CH3run1_75015mm
+global timerun3_part1, CH0run3_part1, CH1run3_part1, CH2run3_part1, CH3run3_part1
+global timerun3_part2, CH0run3_part2, CH1run3_part2, CH2run3_part2, CH3run3_part2
+
 
 timerun2 = dataRun2[:, 0]  # Time in [s]
 CH0run2 = dataRun2[:, 1]   # Channel 0: Cold salt temperature in [°C]
@@ -142,7 +154,6 @@ furnaceImmersionTime_run3 = np.column_stack((timerun3_part1, immersion_depths_ru
 
 # Furnace and immersion depths of all data runs
 fig, ax1 = plt.subplots(figsize=(12, 6), sharex=False)
-
 
 ax1.plot(furnaceTemperatureTime_run3[:, 0], furnaceTemperatureTime_run3[:, 1], label='Run 3', color='lightcoral', lw=1)
 ax1.plot(furnaceTemperatureTime_run2[:, 0], furnaceTemperatureTime_run2[:, 1], label='Run 2', color='darkred', lw=1)
