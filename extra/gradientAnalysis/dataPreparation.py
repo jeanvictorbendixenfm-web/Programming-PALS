@@ -2,26 +2,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-
-Path = r"C:\Users\jeanv\OneDrive - Delft University of Technology\Uitwisseling - TUDelft\Courses\MEP\Experiments\nic\temperature_measurements"
-
-# Loading data from the text files
 global dataRun2
-dataRun2 = np.loadtxt(Path + r"\Round2_copy.txt", delimiter="\t")
 global dataRun1
-dataRun1 = np.loadtxt(Path + r"\Round1_copy.txt", delimiter="\t")
 global dataRun1_75015mm
-dataRun1_75015mm = np.loadtxt(Path + r"\15mm750C_run1_copy.txt", delimiter="\t")
 global dataRun3_part1
-dataRun3_part1 = np.loadtxt(Path + r"\Round3_part1.txt", delimiter="\t")
 global dataRun3_part2
-dataRun3_part2 = np.loadtxt(Path + r"\Round3_part2.txt", delimiter="\t")
 
 global timerun2, CH0run2, CH1run2, CH2run2, CH3run2
 global timerun1, CH0run1, CH1run1, CH2run1, CH3run1
 global timerun1_75015mm, CH0run1_75015mm, CH1run1_75015mm, CH2run1_75015mm, CH3run1_75015mm
 global timerun3_1, CH0run3_1, CH1run3_1, CH2run3_1, CH3run3_1
 global timerun3_2, CH0run3_2, CH1run3_2, CH2run3_2, CH3run3_2
+
+
+
+Path = r"C:\Users\jeanv\OneDrive - Delft University of Technology\Uitwisseling - TUDelft\Courses\MEP\Experiments\nic\temperature_measurements"
+
+# Loading data from the text files
+
+dataRun2 = np.loadtxt(Path + r"\Round2_copy.txt", delimiter="\t")
+dataRun1 = np.loadtxt(Path + r"\Round1_copy.txt", delimiter="\t")
+dataRun1_75015mm = np.loadtxt(Path + r"\15mm750C_run1_copy.txt", delimiter="\t")
+dataRun3_part1 = np.loadtxt(Path + r"\Round3_part1.txt", delimiter="\t")
+dataRun3_part2 = np.loadtxt(Path + r"\Round3_part2.txt", delimiter="\t")
+
+
 
 timerun1 = dataRun1[:, 0]
 CH0run1 = dataRun1[:, 1]
@@ -84,11 +89,11 @@ conditions_furnace_run2 = [
 ]
 
 conditions_furnace_run3 = [
-    (timerun3_part1 >= 0)    & (timerun3_part1 < 6860),   # Pre-heating/Start
-    (timerun3_part1 >= 6860) &    (timerun3_part1 < 10600),   # First Plateau (750C)
-    (timerun3_part1 >= 10600) &    (timerun3_part1 < 11880),   # Second Plateau (900C)
-    (timerun3_part1 >= 11880) &    (timerun3_part1 < 19000),   # Final Plateau (1000C)
-    (timerun3_part1 >= 19000)                       # Final Plateau (1000C)
+    (timerun3_1 >= 0)    & (timerun3_1 < 6860),   # Pre-heating/Start
+    (timerun3_1 >= 6860) &    (timerun3_1 < 10600),   # First Plateau (750C)
+    (timerun3_1 >= 10600) &    (timerun3_1 < 11880),   # Second Plateau (900C)
+    (timerun3_1 >= 11880) &    (timerun3_1 < 19000),   # Final Plateau (1000C)
+    (timerun3_1 >= 19000)                       # Final Plateau (1000C)
 ]
 
 conditions_immersion_run2 = [
@@ -100,8 +105,8 @@ conditions_immersion_run2 = [
 ]
 
 conditions_immersion_run3 = [
-    (timerun3_part1 >= 0)    & (timerun3_part1 < 10600),   # Pre-heating/Start
-    (timerun3_part1 >= 10600)   # First Plateau (750C)
+    (timerun3_1 >= 0)    & (timerun3_1 < 10600),   # Pre-heating/Start
+    (timerun3_1 >= 10600)   # First Plateau (750C)
                      # Final Plateau (1000C)
 ]
 
@@ -145,9 +150,9 @@ immersion_depths_run2 = np.select(conditions_immersion_run2, values_immersion_ru
 
 # 4. Combine into your (N, 2) array for your plotter
 furnaceTemperatureTime_run2 = np.column_stack((timerun2, furnace_temps_run2))
-furnaceTemperatureTime_run3 = np.column_stack((timerun3_part1, furnace_temps_run3))
+furnaceTemperatureTime_run3 = np.column_stack((timerun3_1, furnace_temps_run3))
 furnaceImmersionTime_run2 = np.column_stack((timerun2, immersion_depths_run2))
-furnaceImmersionTime_run3 = np.column_stack((timerun3_part1, immersion_depths_run3))
+furnaceImmersionTime_run3 = np.column_stack((timerun3_1, immersion_depths_run3))
 
 
 
