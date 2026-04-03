@@ -80,7 +80,8 @@ events_run2 = [
 
 
 
-# 1. Conditions (Tf and Immer. Depth.)
+
+# Data Run 2: Furnace Temperature and Immersion Depth Timestamps
 conditions_furnace_run2 = [
     (timerun2 >= 0)    & (timerun2 < 7500),   # Pre-heating/Start
     (timerun2 >= 7500) & (timerun2 < 8500),   # First Plateau (750C)
@@ -88,13 +89,6 @@ conditions_furnace_run2 = [
     (timerun2 >= 10000)                       # Final Plateau (1000C)
 ]
 
-conditions_furnace_run3 = [
-    (timerun3_1 >= 0)    & (timerun3_1 < 6860),   # Pre-heating/Start
-    (timerun3_1 >= 6860) &    (timerun3_1 < 10600),   # First Plateau (750C)
-    (timerun3_1 >= 10600) &    (timerun3_1 < 11880),   # Second Plateau (900C)
-    (timerun3_1 >= 11880) &    (timerun3_1 < 19000),   # Final Plateau (1000C)
-    (timerun3_1 >= 19000)                       # Final Plateau (1000C)
-]
 
 conditions_immersion_run2 = [
     (timerun2 >= 0)    & (timerun2 < 4600),   # Pre-heating/Start
@@ -104,13 +98,6 @@ conditions_immersion_run2 = [
     (timerun2 >= 8500)                       # Final Plateau (1000C)
 ]
 
-conditions_immersion_run3 = [
-    (timerun3_1 >= 0)    & (timerun3_1 < 10600),   # Pre-heating/Start
-    (timerun3_1 >= 10600)   # First Plateau (750C)
-                     # Final Plateau (1000C)
-]
-
-# 2. Define the Temperature values for those intervals
 values_furnace_run2 = [
     750,    # Room Temp
     900,   # 15mm Immersion Step
@@ -127,42 +114,98 @@ values_immersion_run2 = [
     -47, 
 ]
 
-values_furnace_run3 = [
+# Data Run 3, Part 1: Furnace Temperature and Immersion Depth Timestamps
+
+conditions_furnace_run3_1 = [
+    (timerun3_1 >= 0)    & (timerun3_1 < 6860),   # Pre-heating/Start
+    (timerun3_1 >= 6860) &    (timerun3_1 < 10600),   # First Plateau (750C)
+    (timerun3_1 >= 10600) &    (timerun3_1 < 11880),   # Second Plateau (900C)
+    (timerun3_1 >= 11880) &    (timerun3_1 < 19000),   # Final Plateau (1000C)
+    (timerun3_1 >= 19000)                       # Final Plateau (1000C)
+]
+
+
+conditions_immersion_run3_1 = [
+    (timerun3_1 >= 0)      
+]
+
+values_furnace_run3_1 = [
     650,    # Room Temp
     700,   # 15mm Immersion Step
     750,   # 1000C Step
-    850,
-    850,
+    800,
+    875,
+    875,
 ]
 
-values_immersion_run3 = [
-    -47,
+values_immersion_run3_1 = [
     -52,
 ]
 
+# Data Run 3, Part 2: Furnace Temperature and Immersion Depth Timestamps
+
+conditions_furnace_run3_2 = [
+    (timerun3_2 >= 0)    & (timerun3_2 < 75),   # Pre-heating/Start
+    (timerun3_2 >= 75) &    (timerun3_2 < 2200),   # First Plateau (750C)
+    (timerun3_2 >= 2200)                     # Final Plateau (1000C)
+]
+
+
+conditions_immersion_run3_2 = [
+    (timerun3_2 >= 0)    & (timerun3_2 < 4830),   # Pre-heating/Start
+    (timerun3_2 >= 4830) & (timerun3_2 < 6500),  # First Plateau (750C)
+    (timerun3_2 >= 6500)                       # Final Plateau (1000C)
+]
+
+values_furnace_run3_2 = [
+    875,
+    950,
+    1000,
+]
+
+values_immersion_run3_2 = [
+    -52,
+    -57,
+    -62,
+]
+
+
+
 print(f"Time length: {len(timerun2)}")
 
-# 3. Create the 1D temperature array
-furnace_temps_run3 = np.select(conditions_furnace_run3, values_furnace_run3, default=0)
+# Tf and Im.depth vs Time for Run 2 and Run 3
+
+# Data Run 2:
 furnace_temps_run2 = np.select(conditions_furnace_run2, values_furnace_run2, default=0)
-immersion_depths_run3 = np.select(conditions_immersion_run3, values_immersion_run3, default=0)
 immersion_depths_run2 = np.select(conditions_immersion_run2, values_immersion_run2, default=0)
-
-# 4. Combine into your (N, 2) array for your plotter
+# 4. Combine into (N, 2) array for plotting
 furnaceTemperatureTime_run2 = np.column_stack((timerun2, furnace_temps_run2))
-furnaceTemperatureTime_run3 = np.column_stack((timerun3_1, furnace_temps_run3))
 furnaceImmersionTime_run2 = np.column_stack((timerun2, immersion_depths_run2))
-furnaceImmersionTime_run3 = np.column_stack((timerun3_1, immersion_depths_run3))
 
+# Data Run 3, Part 1:
+furnace_temps_run3_1 = np.select(conditions_furnace_run3_1, values_furnace_run3_1, default=0)
+immersion_depths_run3_1 = np.select(conditions_immersion_run3_1, values_immersion_run3_1, default=0)
+# 4. Combine into (N, 2) array for plotting
+furnaceTemperatureTime_run3_1 = np.column_stack((timerun3_1, furnace_temps_run3_1))
+furnaceImmersionTime_run3_1 = np.column_stack((timerun3_1, immersion_depths_run3_1))
+
+# Data Run 3, Part 2:
+furnace_temps_run3_2 = np.select(conditions_furnace_run3_2, values_furnace_run3_2, default=0)
+immersion_depths_run3_2 = np.select(conditions_immersion_run3_2, values_immersion_run3_2, default=0)
+# 4. Combine into (N, 2) array for plotting
+furnaceTemperatureTime_run3_2 = np.column_stack((timerun3_2, furnace_temps_run3_2))
+furnaceImmersionTime_run3_2 = np.column_stack((timerun3_2, immersion_depths_run3_2))
 
 
 # Furnace and immersion depths of all data runs
 fig, ax1 = plt.subplots(figsize=(12, 6), sharex=False)
 
-ax1.plot(furnaceTemperatureTime_run3[:, 0], furnaceTemperatureTime_run3[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
+ax1.plot(furnaceTemperatureTime_run3_1[:, 0], furnaceTemperatureTime_run3_1[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
+ax1.plot(furnaceTemperatureTime_run3_2[:, 0], furnaceTemperatureTime_run3_2[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
 ax1.plot(furnaceTemperatureTime_run2[:, 0], furnaceTemperatureTime_run2[:, 1], label=r'Run 2 $T_f$', color='darkred', lw=1)
 ax2 = ax1.twinx()
-ax2.plot(furnaceImmersionTime_run3[:, 0], furnaceImmersionTime_run3[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
+ax2.plot(furnaceImmersionTime_run3_1[:, 0], furnaceImmersionTime_run3_1[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
+ax2.plot(furnaceImmersionTime_run3_2[:, 0], furnaceImmersionTime_run3_2[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
 ax2.plot(furnaceImmersionTime_run2[:, 0], furnaceImmersionTime_run2[:, 1], label=r'Run 2 $d_{\text{imm}}$', color='skyblue', lw=1)
 ax1.set_xlabel('Time [s]')
 ax1.set_ylabel('Furnace Temperature [°C]', color='red')
