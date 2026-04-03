@@ -195,21 +195,3 @@ immersion_depths_run3_2 = np.select(conditions_immersion_run3_2, values_immersio
 temperatureTime_run3_2 = np.column_stack((timerun3_2, furnace_temps_run3_2))
 immersionTime_run3_2 = np.column_stack((timerun3_2, immersion_depths_run3_2))
 
-
-# Furnace and immersion depths of all data runs
-fig, ax1 = plt.subplots(figsize=(12, 6), sharex=False)
-
-ax1.plot(temperatureTime_run3_1[:, 0], temperatureTime_run3_1[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
-ax1.plot(temperatureTime_run3_2[:, 0], temperatureTime_run3_2[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
-ax1.plot(temperatureTime_run2[:, 0], temperatureTime_run2[:, 1], label=r'Run 2 $T_f$', color='darkred', lw=1)
-ax2 = ax1.twinx()
-ax2.plot(immersionTime_run3_1[:, 0], immersionTime_run3_1[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
-ax2.plot(immersionTime_run3_2[:, 0], immersionTime_run3_2[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
-ax2.plot(immersionTime_run2[:, 0], immersionTime_run2[:, 1], label=r'Run 2 $d_{\text{imm}}$', color='skyblue', lw=1)
-ax1.set_xlabel('Time [s]')
-ax1.set_ylabel('Furnace Temperature [°C]', color='red')
-ax2.set_ylabel('Immersion Depth [mm]', color='blue')
-
-ax1.legend(loc='center right')
-ax2.legend(loc='upper right')
-plt.show()

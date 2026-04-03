@@ -6,21 +6,20 @@ from scipy.signal import savgol_filter
 from scipy.stats import linregress
 
 
-def channelPlotter(channel, time, title, color, range=None, labels=None, ls=None):
+def channelPlotter(channel, time, title, color, range=None, labels=None, linestyles=None):
     plt.figure(figsize=(10, 6))
     i=0
     j=0
     while j < len(time):
-        if len(ls) == 1:
-            ls = ls * len(channel)  # If a single linestyle is provided, repeat it for all channels
+        if len(linestyles) == 1:
+            linestyles = linestyles * len(channel)  # If a single linestyle is provided, repeat it for all channels
         while i < len(channel):
             print(f"i = {i}")
             if labels:
-                plt.plot(time[j], channel[i], color=color[i], lw=1, label=labels[i], linestyle=ls[i] if ls else '-')
+                plt.plot(time[j], channel[i], color=color[i], lw=1, label=labels[i], linestyle=linestyles[i] if linestyles else '-')
             else:
-                plt.plot(time[j], channel[i], color=color[i], lw=1, label=f"Channel {i}", linestyle=ls[i] if ls else '-')
+                plt.plot(time[j], channel[i], color=color[i], lw=1, label=f"Channel {i}", linestyle=linestyles[i] if linestyles else '-')
             i+=1
-        print(f"j = {j}")
         j+=1
         i=0  # Reset i for the next time step
     plt.title(title)
