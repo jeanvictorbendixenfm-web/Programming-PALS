@@ -135,7 +135,6 @@ values_furnace_run3_1 = [
     750,   # 1000C Step
     800,
     875,
-    875,
 ]
 
 values_immersion_run3_1 = [
