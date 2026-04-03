@@ -20,8 +20,8 @@ dataRun3_part2 = np.loadtxt(Path + r"\Round3_part2.txt", delimiter="\t")
 global timerun2, CH0run2, CH1run2, CH2run2, CH3run2
 global timerun1, CH0run1, CH1run1, CH2run1, CH3run1
 global timerun1_75015mm, CH0run1_75015mm, CH1run1_75015mm, CH2run1_75015mm, CH3run1_75015mm
-global timerun3_part1, CH0run3_part1, CH1run3_part1, CH2run3_part1, CH3run3_part1
-global timerun3_part2, CH0run3_part2, CH1run3_part2, CH2run3_part2, CH3run3_part2
+global timerun3_1, CH0run3_1, CH1run3_1, CH2run3_1, CH3run3_1
+global timerun3_2, CH0run3_2, CH1run3_2, CH2run3_2, CH3run3_2
 
 timerun1 = dataRun1[:, 0]
 CH0run1 = dataRun1[:, 1]
