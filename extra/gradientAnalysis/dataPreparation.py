@@ -16,6 +16,7 @@ global timerun3_2, CH0run3_2, CH1run3_2, CH2run3_2, CH3run3_2
 
 
 
+
 Path = r"C:\Users\jeanv\OneDrive - Delft University of Technology\Uitwisseling - TUDelft\Courses\MEP\Experiments\nic\temperature_measurements"
 
 # Loading data from the text files

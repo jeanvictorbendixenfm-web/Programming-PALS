@@ -6,7 +6,7 @@ from scipy.signal import savgol_filter
 from scipy.stats import linregress
 
 
-def channelPlotter(channel, time, title, color, range=None, labels=None, linestyles=None):
+def channelPlotter(channel, time, title, color, rangex=None, rangey=None, labels=None, linestyles=None):
     plt.figure(figsize=(10, 6))
     i=0
     j=0
@@ -14,7 +14,6 @@ def channelPlotter(channel, time, title, color, range=None, labels=None, linesty
         if len(linestyles) == 1:
             linestyles = linestyles * len(channel)  # If a single linestyle is provided, repeat it for all channels
         while i < len(channel):
-            print(f"i = {i}")
             if labels:
                 plt.plot(time[j], channel[i], color=color[i], lw=1, label=labels[i], linestyle=linestyles[i] if linestyles else '-')
             else:
@@ -25,9 +24,17 @@ def channelPlotter(channel, time, title, color, range=None, labels=None, linesty
     plt.title(title)
     plt.xlabel("Time [s]")
     plt.ylabel("Temperature [°C]")
-    if range is not None:
-        plt.xlim(range[0,0], range[0,1])  # Focus on the specified time range
-        plt.ylim(range[1,0], range[1,1])  # Focus on the specified temperature range
+    
+    if rangex is not None:
+        plt.xlim(rangex[0], rangex[1])  # Focus on the specified time range
+    else: 
+        plt.xlim(auto=True)
+        
+    if rangey is not None:
+        plt.ylim(rangey[0], rangey[1])  # Focus on the specified temperature range
+    elif rangey == None:
+        plt.autoscale(enable=True, axis='y')  # Auto-scale y-axis if no range is provided
+    plt.autoscale(enable=True, axis='y')
     plt.legend()
     plt.show()
 
