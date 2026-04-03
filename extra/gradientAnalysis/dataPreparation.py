@@ -23,13 +23,6 @@ global timerun1_75015mm, CH0run1_75015mm, CH1run1_75015mm, CH2run1_75015mm, CH3r
 global timerun3_part1, CH0run3_part1, CH1run3_part1, CH2run3_part1, CH3run3_part1
 global timerun3_part2, CH0run3_part2, CH1run3_part2, CH2run3_part2, CH3run3_part2
 
-
-timerun2 = dataRun2[:, 0]  # Time in [s]
-CH0run2 = dataRun2[:, 1]   # Channel 0: Cold salt temperature in [°C]
-CH1run2 = dataRun2[:, 2]   # Channel 1: Hot salt temperature in [°C]
-CH2run2 = dataRun2[:, 3]   # Channel 2: Cold outer temperature in [°C] (called Copper Temp)
-CH3run2 = dataRun2[:, 4]   # Channel 3: Hot outer temperature in [°C] (called Alumina Temp)
-
 timerun1 = dataRun1[:, 0]
 CH0run1 = dataRun1[:, 1]
 CH1run1 = dataRun1[:, 2]
@@ -42,18 +35,24 @@ CH1run1_75015mm = dataRun1_75015mm[:, 2]
 CH2run1_75015mm = dataRun1_75015mm[:, 3]
 CH3run1_75015mm = dataRun1_75015mm[:, 4]
 
+timerun2 = dataRun2[:, 0]  # Time in [s]
+CH0run2 = dataRun2[:, 1]   # Channel 0: Cold salt temperature in [°C]
+CH1run2 = dataRun2[:, 2]   # Channel 1: Hot salt temperature in [°C]
+CH2run2 = dataRun2[:, 3]   # Channel 2: Cold outer temperature in [°C] (called Copper Temp)
+CH3run2 = dataRun2[:, 4]   # Channel 3: Hot outer temperature in [°C] (called Alumina Temp)
 
-timerun3_part1 = dataRun3_part1[:, 0]
-CH0run3_part1 = dataRun3_part1[:, 1]
-CH1run3_part1 = dataRun3_part1[:, 2]
-CH2run3_part1 = dataRun3_part1[:, 3]
-CH3run3_part1 = dataRun3_part1[:, 4]
 
-timerun3_part2 = dataRun3_part2[:, 0]
-CH0run3_part2 = dataRun3_part2[:, 1]
-CH1run3_part2 = dataRun3_part2[:, 2]
-CH2run3_part2 = dataRun3_part2[:, 3]
-CH3run3_part2 = dataRun3_part2[:, 4]
+timerun3_1 = dataRun3_part1[:, 0]
+CH0run3_1 = dataRun3_part1[:, 1]
+CH1run3_1 = dataRun3_part1[:, 2]
+CH2run3_1 = dataRun3_part1[:, 3]
+CH3run3_1 = dataRun3_part1[:, 4]
+
+timerun3_2 = dataRun3_part2[:, 0]
+CH0run3_2 = dataRun3_part2[:, 1]
+CH1run3_2 = dataRun3_part2[:, 2]
+CH2run3_2 = dataRun3_part2[:, 3]
+CH3run3_2 = dataRun3_part2[:, 4]
 
 
 ## Events occuring doing operation
@@ -76,8 +75,7 @@ events_run2 = [
 
 
 
-# 1. Define your conditions (The Time Intervals)
-# You can add as many as you want here
+# 1. Conditions (Tf and Immer. Depth.)
 conditions_furnace_run2 = [
     (timerun2 >= 0)    & (timerun2 < 7500),   # Pre-heating/Start
     (timerun2 >= 7500) & (timerun2 < 8500),   # First Plateau (750C)
@@ -134,7 +132,7 @@ values_furnace_run3 = [
 
 values_immersion_run3 = [
     -47,
-    -52 
+    -52,
 ]
 
 print(f"Time length: {len(timerun2)}")
@@ -152,16 +150,19 @@ furnaceImmersionTime_run2 = np.column_stack((timerun2, immersion_depths_run2))
 furnaceImmersionTime_run3 = np.column_stack((timerun3_part1, immersion_depths_run3))
 
 
+
 # Furnace and immersion depths of all data runs
 fig, ax1 = plt.subplots(figsize=(12, 6), sharex=False)
 
-ax1.plot(furnaceTemperatureTime_run3[:, 0], furnaceTemperatureTime_run3[:, 1], label='Run 3', color='lightcoral', lw=1)
-ax1.plot(furnaceTemperatureTime_run2[:, 0], furnaceTemperatureTime_run2[:, 1], label='Run 2', color='darkred', lw=1)
+ax1.plot(furnaceTemperatureTime_run3[:, 0], furnaceTemperatureTime_run3[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
+ax1.plot(furnaceTemperatureTime_run2[:, 0], furnaceTemperatureTime_run2[:, 1], label=r'Run 2 $T_f$', color='darkred', lw=1)
 ax2 = ax1.twinx()
-ax2.plot(furnaceImmersionTime_run3[:, 0], furnaceImmersionTime_run3[:, 1], label='Immersion Depth', color='darkblue', lw=1)
-ax2.plot(furnaceImmersionTime_run2[:, 0], furnaceImmersionTime_run2[:, 1], label='Immersion Depth', color='skyblue', lw=1)
+ax2.plot(furnaceImmersionTime_run3[:, 0], furnaceImmersionTime_run3[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
+ax2.plot(furnaceImmersionTime_run2[:, 0], furnaceImmersionTime_run2[:, 1], label=r'Run 2 $d_{\text{imm}}$', color='skyblue', lw=1)
 ax1.set_xlabel('Time [s]')
 ax1.set_ylabel('Furnace Temperature [°C]', color='red')
 ax2.set_ylabel('Immersion Depth [mm]', color='blue')
-plt.show()
 
+ax1.legend(loc='center right')
+ax2.legend(loc='upper right')
+plt.show()
