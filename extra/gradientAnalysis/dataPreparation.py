@@ -179,34 +179,34 @@ print(f"Time length: {len(timerun2)}")
 furnace_temps_run2 = np.select(conditions_furnace_run2, values_furnace_run2, default=0)
 immersion_depths_run2 = np.select(conditions_immersion_run2, values_immersion_run2, default=0)
 # 4. Combine into (N, 2) array for plotting
-furnaceTemperatureTime_run2 = np.column_stack((timerun2, furnace_temps_run2))
-furnaceImmersionTime_run2 = np.column_stack((timerun2, immersion_depths_run2))
+temperatureTime_run2 = np.column_stack((timerun2, furnace_temps_run2))
+immersionTime_run2 = np.column_stack((timerun2, immersion_depths_run2))
 
 # Data Run 3, Part 1:
 furnace_temps_run3_1 = np.select(conditions_furnace_run3_1, values_furnace_run3_1, default=0)
 immersion_depths_run3_1 = np.select(conditions_immersion_run3_1, values_immersion_run3_1, default=0)
 # 4. Combine into (N, 2) array for plotting
-furnaceTemperatureTime_run3_1 = np.column_stack((timerun3_1, furnace_temps_run3_1))
-furnaceImmersionTime_run3_1 = np.column_stack((timerun3_1, immersion_depths_run3_1))
+temperatureTime_run3_1 = np.column_stack((timerun3_1, furnace_temps_run3_1))
+immersionTime_run3_1 = np.column_stack((timerun3_1, immersion_depths_run3_1))
 
 # Data Run 3, Part 2:
 furnace_temps_run3_2 = np.select(conditions_furnace_run3_2, values_furnace_run3_2, default=0)
 immersion_depths_run3_2 = np.select(conditions_immersion_run3_2, values_immersion_run3_2, default=0)
 # 4. Combine into (N, 2) array for plotting
-furnaceTemperatureTime_run3_2 = np.column_stack((timerun3_2, furnace_temps_run3_2))
-furnaceImmersionTime_run3_2 = np.column_stack((timerun3_2, immersion_depths_run3_2))
+temperatureTime_run3_2 = np.column_stack((timerun3_2, furnace_temps_run3_2))
+immersionTime_run3_2 = np.column_stack((timerun3_2, immersion_depths_run3_2))
 
 
 # Furnace and immersion depths of all data runs
 fig, ax1 = plt.subplots(figsize=(12, 6), sharex=False)
 
-ax1.plot(furnaceTemperatureTime_run3_1[:, 0], furnaceTemperatureTime_run3_1[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
-ax1.plot(furnaceTemperatureTime_run3_2[:, 0], furnaceTemperatureTime_run3_2[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
-ax1.plot(furnaceTemperatureTime_run2[:, 0], furnaceTemperatureTime_run2[:, 1], label=r'Run 2 $T_f$', color='darkred', lw=1)
+ax1.plot(temperatureTime_run3_1[:, 0], temperatureTime_run3_1[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
+ax1.plot(temperatureTime_run3_2[:, 0], temperatureTime_run3_2[:, 1], label=r'Run 3 $T_f$', color='lightcoral', lw=1)
+ax1.plot(temperatureTime_run2[:, 0], temperatureTime_run2[:, 1], label=r'Run 2 $T_f$', color='darkred', lw=1)
 ax2 = ax1.twinx()
-ax2.plot(furnaceImmersionTime_run3_1[:, 0], furnaceImmersionTime_run3_1[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
-ax2.plot(furnaceImmersionTime_run3_2[:, 0], furnaceImmersionTime_run3_2[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
-ax2.plot(furnaceImmersionTime_run2[:, 0], furnaceImmersionTime_run2[:, 1], label=r'Run 2 $d_{\text{imm}}$', color='skyblue', lw=1)
+ax2.plot(immersionTime_run3_1[:, 0], immersionTime_run3_1[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
+ax2.plot(immersionTime_run3_2[:, 0], immersionTime_run3_2[:, 1], label=r'Run 3 $d_{\text{imm}}$', color='darkblue', lw=1)
+ax2.plot(immersionTime_run2[:, 0], immersionTime_run2[:, 1], label=r'Run 2 $d_{\text{imm}}$', color='skyblue', lw=1)
 ax1.set_xlabel('Time [s]')
 ax1.set_ylabel('Furnace Temperature [°C]', color='red')
 ax2.set_ylabel('Immersion Depth [mm]', color='blue')
