@@ -2,13 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-global dataRun2
+global dataRun2_part1
+global dataRun2_part2
 global dataRun1
 global dataRun1_75015mm
 global dataRun3_part1
 global dataRun3_part2
 
-global timerun2, CH0run2, CH1run2, CH2run2, CH3run2
+global timerun2_1, CH0run2_1, CH1run2_1, CH2run2_1, CH3run2_1
+global timerun2_2, CH0run2_2, CH1run2_2, CH2run2_2, CH3run2_2
 global timerun1, CH0run1, CH1run1, CH2run1, CH3run1
 global timerun1_75015mm, CH0run1_75015mm, CH1run1_75015mm, CH2run1_75015mm, CH3run1_75015mm
 global timerun3_1, CH0run3_1, CH1run3_1, CH2run3_1, CH3run3_1
@@ -21,7 +23,8 @@ Path = r"C:\Users\jeanv\OneDrive - Delft University of Technology\Uitwisseling -
 
 # Loading data from the text files
 
-dataRun2 = np.loadtxt(Path + r"\Round2_copy.txt", delimiter="\t")
+dataRun2_part1 = np.loadtxt(Path + r"\Round2_part1_copy.txt", delimiter="\t")
+dataRun2_part2 = np.loadtxt(Path + r"\Round2_part2_copy.txt", delimiter="\t")
 dataRun1 = np.loadtxt(Path + r"\Round1_copy.txt", delimiter="\t")
 dataRun1_75015mm = np.loadtxt(Path + r"\15mm750C_run1_copy.txt", delimiter="\t")
 dataRun3_part1 = np.loadtxt(Path + r"\Round3_part1.txt", delimiter="\t")
@@ -41,12 +44,18 @@ CH1run1_75015mm = dataRun1_75015mm[:, 2]
 CH2run1_75015mm = dataRun1_75015mm[:, 3]
 CH3run1_75015mm = dataRun1_75015mm[:, 4]
 
-timerun2 = dataRun2[:, 0]  # Time in [s]
-CH0run2 = dataRun2[:, 1]   # Channel 0: Cold salt temperature in [°C]
-CH1run2 = dataRun2[:, 2]   # Channel 1: Hot salt temperature in [°C]
-CH2run2 = dataRun2[:, 3]   # Channel 2: Cold outer temperature in [°C] (called Copper Temp)
-CH3run2 = dataRun2[:, 4]   # Channel 3: Hot outer temperature in [°C] (called Alumina Temp)
+timerun2_1 = dataRun2_part1[:, 0]  # Time in [s]
+CH0run2_1 = dataRun2_part1[:, 1]   # Channel 0: Cold salt temperature in [°C]
+CH1run2_1 = dataRun2_part1[:, 2]   # Channel 1: Hot salt temperature in [°C]
+CH2run2_1 = dataRun2_part1[:, 3]   # Channel 2: Cold outer temperature in [°C] (called Copper Temp)
+CH3run2_1 = dataRun2_part1[:, 4]   # Channel 3: Hot outer temperature in [°C] (called Alumina Temp)
 
+
+timerun2_2 = dataRun2_part2[:, 0]  # Time in [s]
+CH0run2_2 = dataRun2_part2[:, 1]   # Channel 0: Cold salt temperature in [°C]
+CH1run2_2 = dataRun2_part2[:, 2]   # Channel 1: Hot salt temperature in [°C]
+CH2run2_2 = dataRun2_part2[:, 3]   # Channel 2: Cold outer temperature in [°C] (called Copper Temp)
+CH3run2_2 = dataRun2_part2[:, 4]   # Channel 3: Hot outer temperature in [°C] (called Alumina Temp)
 
 timerun3_1 = dataRun3_part1[:, 0]
 CH0run3_1 = dataRun3_part1[:, 1]
@@ -82,24 +91,24 @@ events_run2 = [
 
 
 
-# Data Run 2: Furnace Temperature and Immersion Depth Timestamps
-conditions_furnace_run2 = [
-    (timerun2 >= 0)    & (timerun2 < 7500),   # Pre-heating/Start
-    (timerun2 >= 7500) & (timerun2 < 8500),   # First Plateau (750C)
-    (timerun2 >= 8500) & (timerun2 < 10000),   # Second Plateau (900C)
-    (timerun2 >= 10000)                       # Final Plateau (1000C)
+# Data Run 2, Part 1: Furnace Temperature and Immersion Depth Timestamps
+conditions_furnace_run2_1 = [
+    (timerun2_1 >= 0)    & (timerun2_1 < 7500),   # Pre-heating/Start
+    (timerun2_1 >= 7500) & (timerun2_1 < 8500),   # First Plateau (750C)
+    (timerun2_1 >= 8500) & (timerun2_1 < 10000),   # Second Plateau (900C)
+    (timerun2_1 >= 10000)                       # Final Plateau (1000C)
 ]
 
 
-conditions_immersion_run2 = [
-    (timerun2 >= 0)    & (timerun2 < 4600),   # Pre-heating/Start
-    (timerun2 >= 4600) & (timerun2 < 6000),   # First Plateau (750C)
-    (timerun2 >= 6000) & (timerun2 < 7000),   # Second Plateau (900C)
-    (timerun2 >= 7000) & (timerun2 < 8500),   # Third Plateau (1000C)
-    (timerun2 >= 8500)                       # Final Plateau (1000C)
+conditions_immersion_run2_1 = [
+    (timerun2_1 >= 0)    & (timerun2_1 < 4600),   # Pre-heating/Start
+    (timerun2_1 >= 4600) & (timerun2_1 < 6000),   # First Plateau (750C)
+    (timerun2_1 >= 6000) & (timerun2_1 < 7000),   # Second Plateau (900C)
+    (timerun2_1 >= 7000) & (timerun2_1 < 8500),   # Third Plateau (1000C)
+    (timerun2_1 >= 8500)                       # Final Plateau (1000C)
 ]
 
-values_furnace_run2 = [
+values_furnace_run2_1 = [
     750,    # Room Temp
     900,   # 15mm Immersion Step
     1000,   # 1000C Step
@@ -107,7 +116,40 @@ values_furnace_run2 = [
 
 ]
 
-values_immersion_run2 = [
+values_immersion_run2_1 = [
+    -15,    # Room Temp
+    -22,   # 15mm Immersion Step
+    -27,   # 1000C Step
+    -37,
+    -47, 
+]
+
+# Data Run 2, Part 2: Furnace Temperature and Immersion Depth Timestamps
+conditions_furnace_run2_2 = [
+    (timerun2_2 >= 0)    & (timerun2_2 < 7500),   # Pre-heating/Start
+    (timerun2_2 >= 7500) & (timerun2_2 < 8500),   # First Plateau (750C)
+    (timerun2_2 >= 8500) & (timerun2_2 < 10000),   # Second Plateau (900C)
+    (timerun2_2 >= 10000)                       # Final Plateau (1000C)
+]
+
+
+conditions_immersion_run2_2 = [
+    (timerun2_2 >= 0)    & (timerun2_2 < 4600),   # Pre-heating/Start
+    (timerun2_2 >= 4600) & (timerun2_2 < 6000),   # First Plateau (750C)
+    (timerun2_2 >= 6000) & (timerun2_2 < 7000),   # Second Plateau (900C)
+    (timerun2_2 >= 7000) & (timerun2_2 < 8500),   # Third Plateau (1000C)
+    (timerun2_2 >= 8500)                       # Final Plateau (1000C)
+]
+
+values_furnace_run2_2 = [
+    750,    # Room Temp
+    900,   # 15mm Immersion Step
+    1000,   # 1000C Step
+    1000,
+
+]
+
+values_immersion_run2_2 = [
     -15,    # Room Temp
     -22,   # 15mm Immersion Step
     -27,   # 1000C Step
@@ -142,6 +184,7 @@ values_immersion_run3_1 = [
     -52,
 ]
 
+
 # Data Run 3, Part 2: Furnace Temperature and Immersion Depth Timestamps
 
 conditions_furnace_run3_2 = [
@@ -171,16 +214,23 @@ values_immersion_run3_2 = [
 
 
 
-print(f"Time length: {len(timerun2)}")
+print(f"Time length: {len(timerun2_1)}")
 
 # Tf and Im.depth vs Time for Run 2 and Run 3
 
-# Data Run 2:
-furnace_temps_run2 = np.select(conditions_furnace_run2, values_furnace_run2, default=0)
-immersion_depths_run2 = np.select(conditions_immersion_run2, values_immersion_run2, default=0)
+# Data Run 2, Part 1:
+furnace_temps_run2_1 = np.select(conditions_furnace_run2_1, values_furnace_run2_1, default=0)
+immersion_depths_run2_1 = np.select(conditions_immersion_run2_1, values_immersion_run2_1, default=0)
 # 4. Combine into (N, 2) array for plotting
-temperatureTime_run2 = np.column_stack((timerun2, furnace_temps_run2))
-immersionTime_run2 = np.column_stack((timerun2, immersion_depths_run2))
+temperatureTime_run2_1 = np.column_stack((timerun2_1, furnace_temps_run2_1))
+immersionTime_run2_1 = np.column_stack((timerun2_1, immersion_depths_run2_1))
+
+# Data Run 2, Part 2:
+furnace_temps_run2_2 = np.select(conditions_furnace_run2_2, values_furnace_run2_2, default=0)
+immersion_depths_run2_2 = np.select(conditions_immersion_run2_2, values_immersion_run2_2, default=0)
+# 4. Combine into (N, 2) array for plotting
+temperatureTime_run2_2 = np.column_stack((timerun2_2, furnace_temps_run2_2))
+immersionTime_run2_2 = np.column_stack((timerun2_2, immersion_depths_run2_2))
 
 # Data Run 3, Part 1:
 furnace_temps_run3_1 = np.select(conditions_furnace_run3_1, values_furnace_run3_1, default=0)

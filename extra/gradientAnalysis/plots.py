@@ -2,41 +2,217 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from scipy.signal import savgol_filter
+from scipy.signal import savgol_filter, coherence
 from scipy.stats import linregress
+from matplotlib.colors import LogNorm
+from scipy.ndimage import uniform_filter1d
+
+import sys
+sys.path.insert(0, r'C:\Users\jeanv\OneDrive - Delft University of Technology\Uitwisseling - TUDelft\Courses\MEP\Programming\extra')
 
 
-def channelPlotter(channel, time, title, color, rangex=None, rangey=None, labels=None, linestyles=None):
-    plt.figure(figsize=(10, 6))
-    i=0
-    j=0
-    while j < len(time):
-        if len(linestyles) == 1:
-            linestyles = linestyles * len(channel)  # If a single linestyle is provided, repeat it for all channels
-        while i < len(channel):
-            if labels:
-                plt.plot(time[j], channel[i], color=color[i], lw=1, label=labels[i], linestyle=linestyles[i] if linestyles else '-')
-            else:
-                plt.plot(time[j], channel[i], color=color[i], lw=1, label=f"Channel {i}", linestyle=linestyles[i] if linestyles else '-')
-            i+=1
-        j+=1
-        i=0  # Reset i for the next time step
-    plt.title(title)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Temperature [°C]")
+from gradientAnalysis.functions import find_plateaus, analyze_drift, savgolCompilator, coherenceData, powerlaw, powerlawFitter
+
+
+
+# def channelPlotter(channel, time, title, color, rangex=None, rangey=None, labels=None, linestyles=None):
+#     plt.figure(figsize=(10, 6))
+#     i=0
+#     j=0
+#     while j < len(time):
+#         if len(linestyles) == 1:
+#             linestyles = linestyles * len(channel)  # If a single linestyle is provided, repeat it for all channels
+#         while i < len(channel):
+#             if labels:
+#                 plt.plot(time[j], channel[i], color=color[i], lw=1, label=labels[i], linestyle=linestyles[i] if linestyles else '-')
+#             else:
+#                 plt.plot(time[j], channel[i], color=color[i], lw=1, label=f"Channel {i}", linestyle=linestyles[i] if linestyles else '-')
+#             i+=1
+#         j+=1
+#         i=0  # Reset i for the next time step
+#     plt.title(title)
+#     plt.xlabel("Time [s]")
+#     plt.ylabel("Temperature [°C]")
+
+#     ax = plt.gca()
+#     # x-axis range
+#     if rangex is not None:
+#         plt.xlim(rangex[0], rangex[1])
+#     else:
+#         plt.gca().relim()           # Recalculate limits based on plotted data
+#         plt.gca().autoscale_view()  # Update the view
+
+#     # y-axis range
+#     if rangey is not None:
+#         plt.ylim(rangey[0], rangey[1])
+#     else:
+#         plt.gca().relim()
+#         plt.gca().autoscale_view()
+
+#     plt.legend()
+#     plt.show()
+
+def channelPlotter(channel, time, title, color, rangex=None, rangey=None, labels=None, linestyles=None, ax=None, twin=False, extratwin=False, epsilon=None):
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 6))
     
-    if rangex is not None:
-        plt.xlim(rangex[0], rangex[1])  # Focus on the specified time range
-    else: 
-        plt.xlim(auto=True)
+    if linestyles is None: linestyles = ['-'] * len(channel)
+    elif len(linestyles) == 1: linestyles = linestyles * len(channel)
+
+    # Determine which channels belong to the main axis vs the twin axis
+    # If twin is True, we assume the LAST channel in the list is the derivative
+    main_channels_count = len(channel) - (2 if (twin and extratwin) else 1 if twin else 0)
+
+    # 1. Plot Main Channels (Temperature)
+    for i in range(main_channels_count):
+        if isinstance(labels, list):
+            lbl = labels[i] if i < len(labels) else f"Channel {i}"
+        else:
+            lbl = labels if labels else f"Channel {i}"
+            
+        t_data = time[i] if len(time) > i else time[0]
+        ax.plot(t_data, channel[i], color=color[i], lw=1, label=lbl, linestyle=linestyles[i])
+
+    # 2. Plot Twin Channel (Derivative)
+    if twin:
+        ax_twin = ax.twinx()
+        # Use the last index for the derivative
+        t_twin = time[-1] if len(time) == len(channel) else time[0]
+        if extratwin == True:
+            ax_twin.fill_between([t_twin[0],t_twin[-1]], -epsilon, epsilon, color='orange', alpha=0.3, label='Steady Window')
+            ax_twin.plot(t_data, channel[-2], color=color[-2], lw=1, label=lbl, linestyle=linestyles[-2])
+        ax_twin.plot(t_twin, channel[-1], color=color[-1], lw=1, 
+                     label=labels[-1] if labels else "Derivative", linestyle=linestyles[-1])
+        ax_twin.set_ylabel("Rate [°C/s]", color=color[-1])
+        ax_twin.tick_params(axis='y', labelcolor=color[-1])
         
+        # Combine legends so they don't overlap
+        lines, labs = ax.get_legend_handles_labels()
+        lines2, labs2 = ax_twin.get_legend_handles_labels()
+        ax.legend(lines + lines2, labs + labs2, loc='best', fontsize=8)
+    elif labels:
+        ax.legend(loc='best', fontsize=8)
+
+    # 3. Formatting
+    if title: ax.set_title(title)
+    ax.set_xlabel("Time [s]")
+    ax.set_ylabel("Temperature [°C]", color=color[0])
+    ax.tick_params(axis='y', labelcolor=color[0])
+   
+    # 4. SMART SCALING (Only for Main Axis Channels)
+    if rangex is not None:
+        ax.set_xlim(rangex[0], rangex[1])
+        if rangey is None:
+            y_min_list, y_max_list = [], []
+            # CRITICAL: Only loop through main_channels_count
+            for i in range(main_channels_count):
+                t_data = time[i] if len(time) > i else time[0]
+                mask = (t_data >= rangex[0]) & (t_data <= rangex[1])
+                if np.any(mask):
+                    y_min_list.append(np.min(channel[i][mask]))
+                    y_max_list.append(np.max(channel[i][mask]))
+            
+            if y_min_list:
+                y_min, y_max = min(y_min_list), max(y_max_list)
+                margin = (y_max - y_min) * 0.05 if y_max != y_min else 1.0
+                ax.set_ylim(y_min - margin, y_max + margin)
+
     if rangey is not None:
-        plt.ylim(rangey[0], rangey[1])  # Focus on the specified temperature range
-    elif rangey == None:
-        plt.autoscale(enable=True, axis='y')  # Auto-scale y-axis if no range is provided
-    plt.autoscale(enable=True, axis='y')
-    plt.legend()
+        ax.set_ylim(rangey[0], rangey[1])
+
+
+
+def coherencePlotter(windows_time, freqs, Z, Z_axis, window_size, step_size, nperseg, runID="Run 3.1", cmap="viridis"):
+    # Plotting of Coherence
+    plt.figure(figsize=(12, 6))
+
+        # Using LogNorm to see the power-law decay clearly
+        
+    im = plt.pcolormesh(windows_time, freqs, Z, shading='gouraud', 
+                    vmin=Z.min(), vmax=Z.max(), cmap=cmap)
+
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time (Experiment Progress) [s]')
+    plt.title(f'Coherence Spectrogram of {runID} \n  $w={window_size}, s={step_size}, nperseg = {nperseg}$')
+    plt.colorbar(im, label=Z_axis)
     plt.show()
+
+
+def coherenceFitPlotter(freqs, Z_slice, a_fit_val, b_fit_val, windows_time=None, b_fits_array=None, b_errors=None):
+    """
+    freqs: frequency array
+    Z_slice: a single column (window) of coherence data
+    a_fit_val, b_fit_val: specific fit params for that slice
+    windows_time: array of window centers
+    b_fits_array: the array of all b_fit values over time
+    """
+    
+    # Plot 1: The Spectrum + The Fit Line (Log-Log)
+    plt.figure(figsize=(10, 5))
+    plt.loglog(freqs, Z_slice, lw=0.5, label="Data Slice", color="blue")
+    plt.loglog(freqs, powerlaw(freqs, a_fit_val, b_fit_val), color="green", label=f"Fit: b={b_fit_val:.2f}")
+    plt.xlabel("Frequency [Hz]")
+    plt.ylabel("Coherence")
+    plt.legend()
+    plt.title("Power Law Fit Check")
+    plt.show()
+
+    # Plot 2: Evolution of b over time
+    if windows_time is not None and b_fits_array is not None:
+        plt.figure(figsize=(12, 5))
+        plt.errorbar(windows_time, b_fits_array, yerr=b_errors, fmt='o', 
+                 ecolor='black', elinewidth=1, capsize=2, 
+                 label='Measured Exponent $b \pm \sigma$', markersize=0.5)
+        plt.axhline(-1.3, color='red', ls='--', label='Target (-1.3)')
+        plt.xlabel("Time [s]")
+        plt.ylabel("Exponent Value")
+        plt.title("Evolution of Power Law Exponent $b$")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.show()   
+    
+
+def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0, b_psd1, a_coh, b_errors=None, cmap="magma"):
+    # a_coh is now included in the arguments
+    fig, axs = plt.subplots(2, 2, figsize=(15, 10), constrained_layout=True)
+    fig.suptitle(f"Experimental Overview: {runID}", fontsize=18, fontweight='bold')
+
+    # 1. Top Left: Coherence Heatmap
+    im2 = axs[0, 0].pcolormesh(win_t, f, np.log10(Z_psd0), shading='gouraud', cmap=cmap, vmin=np.log10(Z_psd0).mean(), vmax=np.log10(Z_psd0).max())
+    axs[0, 0].set_title("Cold Intrasaline Energy Density (log10 PSD)")
+    axs[0, 0].set_ylabel("Frequency [Hz]")
+    axs[0, 0].set_xlabel("Time [s]")
+    fig.colorbar(im2, ax=axs[0, 0])
+
+
+    # 2. Top Right: Exponent Evolution
+    axs[0, 1].plot(win_t, b_psd0, label='CH0 Exponent', alpha=1)
+    axs[0, 1].plot(win_t, b_psd1, label='CH1 Exponent', alpha=1)
+    axs[0, 1].errorbar(win_t, b_coh, yerr=b_errors, fmt='o', color='black',
+                       ecolor='black', elinewidth=1, capsize=1, ms=3,
+                       label='Coherence $b \pm \sigma$')
+    axs[0, 1].axhline(-1.33, color='r', ls='--', label='Theory (-1.33)')
+    axs[0, 1].set_title("Evolution of Scaling Exponents ($b$)")
+    axs[0, 1].set_ylabel("Exponent Value")
+    axs[0, 1].legend(loc='best', fontsize='small')
+    axs[0, 1].grid(True, alpha=0.2)
+
+    # 3. Bottom Left: PSD Heatmap (Log Scale)
+    im2 = axs[1, 0].pcolormesh(win_t, f, np.log10(Z_psd1), shading='gouraud', cmap=cmap)
+    axs[1, 0].set_title("Hot Intrasaline Energy Density (log10 PSD)")
+    axs[1, 0].set_ylabel("Frequency [Hz]")
+    axs[1, 0].set_xlabel("Time [s]")
+    fig.colorbar(im2, ax=axs[1, 0])
+
+    # 4. Bottom right: Coherence Heatmap
+    im1 = axs[1, 1].pcolormesh(win_t, f, np.log10(Z_coh), shading='gouraud', cmap=cmap, vmin=np.log10(Z_coh).mean(), vmax=np.log10(Z_coh).max())
+    axs[1, 1].set_title("Dual-Channel Coherence (Spatial Connectivity)")
+    axs[1, 1].set_ylabel("Frequency [Hz]")
+    fig.colorbar(im1, ax=axs[1, 1])
+    
+
+    plt.show()
+
 
 def experimentPlotter(run1_data, run1_time, run2_data, run2_time, 
                       title="Comparison of Salt Runs", labels1=None, labels2=None, **kwargs):
@@ -144,4 +320,98 @@ def plot_thermal_results(time, grad, deriv, indices, plateau_info,
     ax1.legend(loc='lower left')
     plt.show()
 
+def savgolCalcPlotter(channel1, time, window_length=51, polyorder=4, deriv=0, delta=1.0):
+    Ts, Td = savgolCompilator(channel1, window_length=window_length, 
+                                polyorder=polyorder, deriv=deriv, delta=delta)
     
+    fig, ax1 = plt.subplots(figsize=(10, 8))
+    ax2 = ax1.twinx()  # Create a second y-axis for the derivative
+
+    print(Td)
+    # Top Plot: Raw vs Smoothed
+    #ax1.plot(channel1, time, label='Raw', color='crimson', lw=1)
+    ax2.plot(Ts, Td, label='Derivative', color='green', lw=1)
+    ax1.plot(Ts, time, label='Savgol Smoothed', color='teal', lw=1)
+    ax1.plot(channel1, time, label='Raw', color='crimson', lw=1)
+    ax2.set_ylim(Td.min() * 1.1, Td.max() * 1.1)  # Add some padding to the y-limits of the derivative
+    ax1.set_xlabel("Temperature [°C]")
+    ax1.set_ylabel("Time [s]")
+    ax2.set_ylabel("Rate of Change [°C/s]")
+    ax1.set_title("Savintsky-Golay Smoothing and Derivative of Temperature Channel for $w={window_length}$ and $p={polyorder}$".format(window_length=window_length, polyorder=polyorder))
+    ax1.legend()
+    ax2.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+
+# plt.figure(figsize=(16, 8))
+
+# xmin_vals = [18000, 25000,30000]
+# nperseg_vals = [512, 512, 512]
+# color = ["darkgreen", "green", "teal", "blue", "darkblue"]
+# window_ch0 = 2001
+# window_ch1 = 2001
+# window_ch2 = 2001
+# window_ch3 = 2001
+# window_grad = window_ch0
+# poly_ch0 = 3
+# poly_ch1 = 3
+# poly_ch2 = 3
+# poly_ch3 = 3
+# poly_grad = poly_ch0
+
+# for i in range(len(xmin_vals)):
+#         # Parameters and data shortening to range
+
+
+#     xmin = xmin_vals[i]
+#     xmax = 87000
+
+    
+#     ## Channel 0
+#     CH0_timeR, CH0_yR = rangeSelector(CH0run3_1, timerun3_1, [xmin, xmax])
+#     ## Channel 1 
+#     CH1_timeR, CH1_yR = rangeSelector(CH1run3_1, timerun3_1, [xmin, xmax])
+#     ## Channel 2
+#     CH2_timeR, CH2_yR = rangeSelector(CH2run3_1, timerun3_1, [xmin, xmax])
+#     ## Channel 3
+#     CH3_timeR, CH3_yR = rangeSelector(CH3run3_1, timerun3_1, [xmin, xmax])
+#     ## Gradient
+#     gradrun3_timeR, gradrun3_yR = rangeSelector(CH1run3_1-CH0run3_1, timerun3_1, [xmin, xmax])
+    
+#     dt = np.mean(np.diff(CH0_timeR))
+#     fs_val = 1.0 / dt
+#     print(np.mean(np.diff(CH0_timeR)))
+#     print(fs_val)
+#     print(xmax-xmin)
+#     print(f"hello  {timerun3_1[-1]}")
+
+#     # dt = np.mean(np.diff(CH3_timeR))
+#     # fs_val3 = 1.0 / dt
+
+#     # 1. Calculate the Coherence between the two heights
+#     # This tells you: "At frequency X, how much do these two sensors agree?"
+#     f_coh, coh = coherence(CH1_yR, CH0_yR, fs=fs_val, nperseg=nperseg_vals[i])
+#     #f_coh2, coh2 = coherence(CH3_yR, CH2_yR, fs=fs_val3, nperseg=512)
+#     mask = (f_coh > 0.01) & (f_coh < 0.4) 
+#     f_fit = f_coh[mask]
+#     coh_fit = coh[mask]
+
+#     popt, pcov = curve_fit(powerlaw, f_fit, coh_fit, p0=[1, -1])
+#     a_fit, b_fit = popt
+#     print(f"Fit result: coh = {a_fit:.7f} * f^({b_fit:.7f})")
+#     plt.loglog(f_coh, coh, color=color[i], lw=0.5, ls="-")
+#     plt.loglog(f_coh, powerlaw(f_coh, a_fit, b_fit), )
+#     #plt.plot(f_coh2, coh2, color="red")
+
+
+# plt.title("Coherence between 15mm and 55mm Sensors")
+# plt.yscale("log")
+# plt.xlabel("Frequency [Hz]")
+# plt.ylabel("Coherence (0 to 1)")
+# plt.grid(True)
+# plt.show()
