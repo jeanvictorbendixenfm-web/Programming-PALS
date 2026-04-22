@@ -172,22 +172,22 @@ def coherenceFitPlotter(freqs, Z_slice, a_fit_val, b_fit_val, windows_time=None,
         plt.show()   
     
 
-def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0, b_psd1, a_coh, b_errors=None, cmap="magma"):
+def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0, b_psd1, a_coh, b_errors=None, cmap="magma", color_singlechannels=["red","blue"]):
     # a_coh is now included in the arguments
     fig, axs = plt.subplots(2, 2, figsize=(15, 10), constrained_layout=True)
-    fig.suptitle(f"Experimental Overview: {runID}", fontsize=18, fontweight='bold')
+    fig.suptitle(f"Spectral Analysis: {runID}", fontsize=18, fontweight='bold')
 
     # 1. Top Left: Coherence Heatmap
-    im2 = axs[0, 0].pcolormesh(win_t, f, np.log10(Z_psd0), shading='gouraud', cmap=cmap, vmin=np.log10(Z_psd0).mean(), vmax=np.log10(Z_psd0).max())
+    im2 = axs[0, 0].pcolormesh(win_t, np.log10(f+0.001), np.log10(Z_psd0), shading='gouraud', cmap=cmap)
     axs[0, 0].set_title("Cold Intrasaline Energy Density (log10 PSD)")
-    axs[0, 0].set_ylabel("Frequency [Hz]")
+    axs[0, 0].set_ylabel("Frequency (log10) [Hz]")
     axs[0, 0].set_xlabel("Time [s]")
     fig.colorbar(im2, ax=axs[0, 0])
 
 
     # 2. Top Right: Exponent Evolution
-    axs[0, 1].plot(win_t, b_psd0, label='CH0 Exponent', alpha=1)
-    axs[0, 1].plot(win_t, b_psd1, label='CH1 Exponent', alpha=1)
+    axs[0, 1].plot(win_t, b_psd0, label='CH0 Exponent', alpha=1, color=color_singlechannels[0])
+    axs[0, 1].plot(win_t, b_psd1, label='CH1 Exponent', alpha=1, color=color_singlechannels[1])
     axs[0, 1].errorbar(win_t, b_coh, yerr=b_errors, fmt='o', color='black',
                        ecolor='black', elinewidth=1, capsize=1, ms=3,
                        label='Coherence $b \pm \sigma$')
@@ -195,19 +195,21 @@ def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0,
     axs[0, 1].set_title("Evolution of Scaling Exponents ($b$)")
     axs[0, 1].set_ylabel("Exponent Value")
     axs[0, 1].legend(loc='best', fontsize='small')
+    axs[0, 1].set_xlabel("Time [s]")
     axs[0, 1].grid(True, alpha=0.2)
 
     # 3. Bottom Left: PSD Heatmap (Log Scale)
-    im2 = axs[1, 0].pcolormesh(win_t, f, np.log10(Z_psd1), shading='gouraud', cmap=cmap)
+    im2 = axs[1, 0].pcolormesh(win_t, np.log10(f+0.001), np.log10(Z_psd1), shading='gouraud', cmap=cmap)
     axs[1, 0].set_title("Hot Intrasaline Energy Density (log10 PSD)")
-    axs[1, 0].set_ylabel("Frequency [Hz]")
+    axs[1, 0].set_ylabel("Frequency (log10) [Hz]")
     axs[1, 0].set_xlabel("Time [s]")
     fig.colorbar(im2, ax=axs[1, 0])
 
     # 4. Bottom right: Coherence Heatmap
-    im1 = axs[1, 1].pcolormesh(win_t, f, np.log10(Z_coh), shading='gouraud', cmap=cmap, vmin=np.log10(Z_coh).mean(), vmax=np.log10(Z_coh).max())
-    axs[1, 1].set_title("Dual-Channel Coherence (Spatial Connectivity)")
-    axs[1, 1].set_ylabel("Frequency [Hz]")
+    im1 = axs[1, 1].pcolormesh(win_t, np.log10(f+0.001), np.log10(Z_coh), shading='gouraud', cmap=cmap, vmin=np.log10(Z_coh).min(), vmax=np.log10(Z_coh).max())
+    axs[1, 1].set_title("Dual-Channel Coherence (log10)")
+    axs[1, 1].set_ylabel("Frequency (log10) [Hz]")
+    axs[1, 1].set_xlabel("Time [s]")
     fig.colorbar(im1, ax=axs[1, 1])
     
 
