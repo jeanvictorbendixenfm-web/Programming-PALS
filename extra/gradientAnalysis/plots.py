@@ -190,7 +190,7 @@ def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0,
     axs[0, 0].set_title("Cold Intrasaline Energy Density (log10 PSD)")
     axs[0, 0].set_ylabel("Frequency (log10) [Hz]")
     axs[0, 0].set_xlabel("Time [s]")
-    fig.colorbar(im2, ax=axs[0, 0])
+    fig.colorbar(im3, ax=axs[0, 0])
 
 
     # 2. Top Right: Exponent Evolution
@@ -214,6 +214,72 @@ def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0,
     axs[1, 1].set_xlabel("Time [s]")
     fig.colorbar(im1, ax=axs[1, 1])
     
+
+    plt.show()
+
+def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0, b_psd1, a_coh, b_errors=None, cmap="magma", color_singlechannels=["red","blue"], location="intra"):
+    fig, axs = plt.subplots(2, 2, figsize=(15, 10), constrained_layout=True)
+    fig.suptitle(f"Spectral Analysis: {runID}", fontsize=18, fontweight='bold')
+
+    # --- CALCULATE GLOBAL PSD LIMITS ---
+    # Convert to log10 once to make calculations cleaner
+    log_psd0 = np.log10(Z_psd0)
+    log_psd1 = np.log10(Z_psd1)
+    
+    # Find the min and max across BOTH channels
+    psd_vmin = min(log_psd0.min(), log_psd1.min())
+    psd_vmax = max(log_psd0.max(), log_psd1.max())
+
+    # 1. Top Left: Cold Channel PSD Heatmap
+    im_psd0 = axs[0, 0].pcolormesh(win_t, np.log10(f+0.001), log_psd0, 
+                                   shading='gouraud', cmap=cmap, 
+                                   vmin=psd_vmin, vmax=psd_vmax) # Set shared range
+    axs[0, 0].set_title("Cold Intrasaline Energy Density (log10 PSD)")
+    if location=="extra":
+        axs[0, 0].set_title("Cold Extrasaline Energy Density (log10 PSD)")
+    axs[0, 0].set_ylabel("Frequency (log10) [Hz]")
+    axs[0, 0].set_xlabel("Time [s]")
+    fig.colorbar(im_psd0, ax=axs[0, 0], label="dB/Hz")
+
+    # 3. Bottom Left: Hot Channel PSD Heatmap
+    im_psd1 = axs[1, 0].pcolormesh(win_t, np.log10(f+0.001), log_psd1, 
+                                   shading='gouraud', cmap=cmap, 
+                                   vmin=psd_vmin, vmax=psd_vmax) # Set shared range
+    axs[1, 0].set_title("Hot Intrasaline Energy Density (log10 PSD)")
+    if location=="extra":
+        axs[1, 0].set_title("Hot Extrasaline Energy Density (log10 PSD)")
+    axs[1, 0].set_ylabel("Frequency (log10) [Hz]")
+    axs[1, 0].set_xlabel("Time [s]")
+    fig.colorbar(im_psd1, ax=axs[1, 0], label="dB/Hz")
+
+    # 2. Top Right: Exponent Evolution
+    axs[0, 1].plot(win_t, b_psd0, label='CH0 Exponent', alpha=1, color=color_singlechannels[0])
+    axs[0, 1].plot(win_t, b_psd1, label='CH1 Exponent', alpha=1, color=color_singlechannels[1])
+    if b_errors is not None:
+        axs[0, 1].errorbar(win_t, b_coh, yerr=b_errors, fmt='o', color='black',
+                           ecolor='black', elinewidth=1, capsize=1, ms=3,
+                           label='Coherence $b \pm \sigma$')
+    else:
+        axs[0, 1].plot(win_t, b_coh, 'ko', ms=3, label='Coherence $b$')
+        
+    axs[0, 1].axhline(-1.33, color='r', ls='--', label='Theory (-1.33)')
+    axs[0, 1].set_title("Evolution of Scaling Exponents ($b$)")
+    axs[0, 1].set_ylabel("Exponent Value")
+    axs[0, 1].set_xlabel("Time [s]")
+    axs[0, 1].legend(loc='best', fontsize='small')
+    axs[0, 1].grid(True, alpha=0.2)
+
+    # 4. Bottom right: Coherence Heatmap
+    # Note: Coherence is 0 to 1, so log10(Z_coh) will be 0 to -inf. 
+    # Usually coherence is plotted on a linear scale, but kept your log10 logic here:
+    log_coh = np.log10(Z_coh)
+    im1 = axs[1, 1].pcolormesh(win_t, np.log10(f+0.001), log_coh, 
+                               shading='gouraud', cmap=cmap, 
+                               vmin=log_coh.min(), vmax=log_coh.max())
+    axs[1, 1].set_title("Dual-Channel Coherence (log10)")
+    axs[1, 1].set_ylabel("Frequency (log10) [Hz]")
+    axs[1, 1].set_xlabel("Time [s]")
+    fig.colorbar(im1, ax=axs[1, 1])
 
     plt.show()
 
