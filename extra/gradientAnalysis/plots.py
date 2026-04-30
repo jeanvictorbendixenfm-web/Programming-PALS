@@ -81,6 +81,7 @@ def channelPlotter(channel, time, title, color, rangex=None, rangey=None, labels
         if extratwin == True:
             ax_twin.fill_between([t_twin[0],t_twin[-1]], -epsilon, epsilon, color='orange', alpha=0.3, label='Steady Window')
             ax_twin.plot(t_data, channel[-2], color=color[-2], lw=1, label=lbl, linestyle=linestyles[-2])
+            ax_twin.set_ylim(-0.005, 0.005)
         ax_twin.plot(t_twin, channel[-1], color=color[-1], lw=1, 
                      label=labels[-1] if labels else "Derivative", linestyle=linestyles[-1])
         ax_twin.set_ylabel("Rate [°C/s]", color=color[-1])
