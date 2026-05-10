@@ -92,13 +92,14 @@ def channelPlotter(channel, time, title, color, rangex=None, rangey=None, labels
         lines2, labs2 = ax_twin.get_legend_handles_labels()
         ax.legend(lines + lines2, labs + labs2, loc='best', fontsize=8)
     elif labels:
-        ax.legend(loc='best', fontsize=8)
+        ax.legend(loc='best', fontsize="xx-large")
 
     # 3. Formatting
-    if title: ax.set_title(title)
-    ax.set_xlabel("Time [s]")
-    ax.set_ylabel("Temperature [°C]", color=color[0])
-    ax.tick_params(axis='y', labelcolor=color[0])
+    if title: ax.set_title(title, fontsize=22)
+    ax.set_xlabel("Time [s]", fontsize=20)
+    ax.set_ylabel("Temperature [°C]", color="black", fontsize=20)
+    ax.tick_params(axis='y', labelcolor="black")
+    
    
     # 4. SMART SCALING (Only for Main Axis Channels)
     if rangex is not None:
@@ -125,14 +126,14 @@ def channelPlotter(channel, time, title, color, rangex=None, rangey=None, labels
 
 def coherencePlotter(windows_time, freqs, Z, Z_axis, window_size, step_size, nperseg, runID="Run 3.1", cmap="viridis"):
     # Plotting of Coherence
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(10, 6))
 
         # Using LogNorm to see the power-law decay clearly
         
-    im = plt.pcolormesh(windows_time, freqs, Z, shading='gouraud', 
+    im = plt.pcolormesh(windows_time, np.log10(freqs+0.001), Z, shading='gouraud', 
                     vmin=Z.min(), vmax=Z.max(), cmap=cmap)
 
-    plt.ylabel('Frequency [Hz]')
+    plt.ylabel('Frequency (log10) [Hz]')
     plt.xlabel('Time (Experiment Progress) [s]')
     plt.title(f'Coherence Spectrogram of {runID} \n  $w={window_size}, s={step_size}, nperseg = {nperseg}$')
     plt.colorbar(im, label=Z_axis)
@@ -220,7 +221,7 @@ def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0,
 
 def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0, b_psd1, a_coh, b_errors=None, cmap="magma", color_singlechannels=["red","blue"], location="intra"):
     fig, axs = plt.subplots(2, 2, figsize=(15, 10), constrained_layout=True)
-    fig.suptitle(f"Spectral Analysis: {runID}", fontsize=18, fontweight='bold')
+    fig.suptitle(f"Spectral Analysis: {runID}", fontsize=22, fontweight='bold')
 
     # --- CALCULATE GLOBAL PSD LIMITS ---
     # Convert to log10 once to make calculations cleaner
@@ -235,21 +236,21 @@ def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0,
     im_psd0 = axs[0, 0].pcolormesh(win_t, np.log10(f+0.001), log_psd0, 
                                    shading='gouraud', cmap=cmap, 
                                    vmin=psd_vmin, vmax=psd_vmax) # Set shared range
-    axs[0, 0].set_title("Cold Intrasaline Energy Density (log10 PSD)")
+    axs[0, 0].set_title("Cold Intrasaline Energy Density (log10 PSD)", fontsize=21)
     if location=="extra":
-        axs[0, 0].set_title("Cold Extrasaline Energy Density (log10 PSD)")
-    axs[0, 0].set_ylabel("Frequency (log10) [Hz]")
-    axs[0, 0].set_xlabel("Time [s]")
+        axs[0, 0].set_title("Cold Extrasaline Energy Density (log10 PSD)", fontsize=21)
+    axs[0, 0].set_ylabel("Frequency (log10) [Hz]", fontsize=20)
+    axs[0, 0].set_xlabel("Time [s]", fontsize=20)
     fig.colorbar(im_psd0, ax=axs[0, 0], label="dB/Hz")
 
     # 3. Bottom Left: Hot Channel PSD Heatmap
     im_psd1 = axs[1, 0].pcolormesh(win_t, np.log10(f+0.001), log_psd1, 
                                    shading='gouraud', cmap=cmap, 
                                    vmin=psd_vmin, vmax=psd_vmax) # Set shared range
-    axs[1, 0].set_title("Hot Intrasaline Energy Density (log10 PSD)")
+    axs[1, 0].set_title("Hot Intrasaline Energy Density (log10 PSD)", fontsize=21)
     if location=="extra":
-        axs[1, 0].set_title("Hot Extrasaline Energy Density (log10 PSD)")
-    axs[1, 0].set_ylabel("Frequency (log10) [Hz]")
+        axs[1, 0].set_title("Hot Extrasaline Energy Density (log10 PSD)", fontsize=21)
+    axs[1, 0].set_ylabel("Frequency (log10) [Hz]", fontsize=20)
     axs[1, 0].set_xlabel("Time [s]")
     fig.colorbar(im_psd1, ax=axs[1, 0], label="dB/Hz")
 
@@ -264,9 +265,9 @@ def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0,
         axs[0, 1].plot(win_t, b_coh, 'ko', ms=3, label='Coherence $b$')
         
     axs[0, 1].axhline(-1.33, color='r', ls='--', label='Theory (-1.33)')
-    axs[0, 1].set_title("Evolution of Scaling Exponents ($b$)")
-    axs[0, 1].set_ylabel("Exponent Value")
-    axs[0, 1].set_xlabel("Time [s]")
+    axs[0, 1].set_title("Evolution of Scaling Exponents ($b$)", fontsize=21)
+    axs[0, 1].set_ylabel("Exponent Value", fontsize=20)
+    axs[0, 1].set_xlabel("Time [s]", fontsize=20)
     axs[0, 1].legend(loc='best', fontsize='small')
     axs[0, 1].grid(True, alpha=0.2)
 
@@ -277,9 +278,9 @@ def plotOverviewDashboard(runID, f, win_t, Z_coh, Z_psd0, Z_psd1, b_coh, b_psd0,
     im1 = axs[1, 1].pcolormesh(win_t, np.log10(f+0.001), log_coh, 
                                shading='gouraud', cmap=cmap, 
                                vmin=log_coh.min(), vmax=log_coh.max())
-    axs[1, 1].set_title("Dual-Channel Coherence (log10)")
-    axs[1, 1].set_ylabel("Frequency (log10) [Hz]")
-    axs[1, 1].set_xlabel("Time [s]")
+    axs[1, 1].set_title("Dual-Channel Coherence (log10)", fontsize=21)
+    axs[1, 1].set_ylabel("Frequency (log10) [Hz]", fontsize=20)
+    axs[1, 1].set_xlabel("Time [s]", fontsize=20)
     fig.colorbar(im1, ax=axs[1, 1])
 
     plt.show()
