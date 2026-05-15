@@ -130,12 +130,17 @@ def coherencePlotter(windows_time, freqs, Z, Z_axis, window_size, step_size, npe
 
         # Using LogNorm to see the power-law decay clearly
         
-    im = plt.pcolormesh(windows_time, np.log10(freqs+0.001), Z, shading='gouraud', 
+    im = plt.pcolormesh(windows_time, freqs, Z, shading='gouraud', 
                     vmin=Z.min(), vmax=Z.max(), cmap=cmap)
+    plt.yscale('log')
+    
+    # 2. Clamp the y-axis tightly to your actual data range
+    plt.ylim(freqs.min(), freqs.max())
+    # ---------------
 
-    plt.ylabel('Frequency (log10) [Hz]')
+    plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time (Experiment Progress) [s]')
-    plt.title(f'Coherence Spectrogram of {runID} \n  $w={window_size}, s={step_size}, nperseg = {nperseg}$')
+    plt.title(f'PSD of {runID} \n  w={window_size}, s={step_size}, nperseg = {nperseg}')
     plt.colorbar(im, label=Z_axis)
     plt.show()
 
